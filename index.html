@@ -731,6 +731,61 @@
       color: var(--muted);
     }
 
+    .api-equipment-list {
+      display: flex;
+      flex-direction: column;
+      gap: 10px;
+      margin-top: 8px;
+    }
+
+    .api-equipment-item {
+      border: 1px solid var(--border);
+      border-radius: 12px;
+      padding: 10px 12px;
+      background: #ffffff;
+    }
+
+    .api-equipment-head {
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      gap: 10px;
+      font-size: 13px;
+      margin-bottom: 6px;
+    }
+
+    .api-equipment-code {
+      font-weight: 600;
+      color: #0f172a;
+    }
+
+    .api-equipment-body {
+      background: #0b1224;
+      color: #e2e8f0;
+      font-family: ui-monospace, SFMono-Regular, Menlo, Monaco, Consolas, "Liberation Mono", "Courier New", monospace;
+      font-size: 12px;
+      padding: 8px;
+      border-radius: 10px;
+      border: 1px solid #111827;
+      min-height: 48px;
+      line-height: 1.4;
+      white-space: pre-wrap;
+      word-break: break-word;
+    }
+
+    .api-equipment-body.is-error {
+      color: #fecdd3;
+      border-color: rgba(239, 68, 68, 0.7);
+    }
+
+    .api-equipment-empty {
+      padding: 12px;
+      border-radius: 10px;
+      border: 1px dashed var(--border);
+      color: var(--muted);
+      background: #f8fafc;
+    }
+
     .muted {
       color: var(--muted);
     }
@@ -1435,6 +1490,17 @@
             <div class="api-response" id="apiResponseBox">
               Ответ API будет показан здесь после выполнения запроса.
             </div>
+
+            <div class="summary-title" style="margin-top:16px;">Данные по выбранному оборудованию</div>
+            <div class="hint">
+              При переходе на этап спецификации запрашиваем актуальные показатели по каждой выбранной позиции (автомат,
+              контактор, реле). Используется тот же endpoint с параметром <code>product</code> — можно изменить URL или токен
+              при необходимости.
+            </div>
+
+            <div class="api-equipment-list" id="apiEquipmentList">
+              <div class="api-equipment-empty">Чтобы получить показатели, выберите оборудование на шагах 2–4.</div>
+            </div>
           </div>
         </div>
       </div>
@@ -1663,6 +1729,7 @@
     const apiUrlPreview = document.getElementById('apiUrlPreview');
     const apiStatus = document.getElementById('apiStatus');
     const apiResponseBox = document.getElementById('apiResponseBox');
+    const apiEquipmentList = document.getElementById('apiEquipmentList');
     const checkApiBtn = document.getElementById('checkApiBtn');
     const clearApiBtn = document.getElementById('clearApiBtn');
 
@@ -2212,6 +2279,133 @@
       apiStatus.textContent = text;
     }
 
+    function buildEquipmentUrl(productCode) {
+      const baseUrl = buildApiUrl();
+      try {
+        const url = new URL(baseUrl);
+        url.searchParams.set('product', productCode);
+        return url.toString();
+      } catch {
+        const join = baseUrl.includes('?') ? '&' : '?';
+        return baseUrl + join + 'product=' + encodeURIComponent(productCode);
+      }
+    }
+
+    function collectSelectedEquipment() {
+      const items = [];
+      if (state.breaker) {
+        items.push({ label: 'Автомат двигателя', code: state.breaker.code, meta: state.breaker.series });
+      }
+      if (state.contactor && state.coilCode) {
+        items.push({ label: 'Контактор с катушкой', code: state.contactor.code + state.coilCode, meta: state.contactor.series });
+      }
+      if (state.relay) {
+        items.push({ label: 'Тепловое реле', code: state.relay.code, meta: state.relay.series });
+      }
+      return items;
+    }
+
+    function renderApiEquipmentList(items) {
+      apiEquipmentList.innerHTML = '';
+      if (!items.length) {
+        const empty = document.createElement('div');
+        empty.className = 'api-equipment-empty';
+        empty.textContent = 'Чтобы получить показатели, выберите оборудование на шагах 2–4.';
+        apiEquipmentList.appendChild(empty);
+        return;
+      }
+
+      items.forEach(item => {
+        const wrapper = document.createElement('div');
+        wrapper.className = 'api-equipment-item';
+        wrapper.dataset.code = item.code;
+
+        const head = document.createElement('div');
+        head.className = 'api-equipment-head';
+        head.innerHTML = '<span class="api-equipment-code">' + item.code + '</span>' +
+          '<span class="muted">' + item.label + (item.meta ? ' · ' + item.meta : '') + '</span>';
+
+        const body = document.createElement('div');
+        body.className = 'api-equipment-body';
+        body.textContent = 'Ожидаем загрузку показателей…';
+
+        wrapper.appendChild(head);
+        wrapper.appendChild(body);
+        apiEquipmentList.appendChild(wrapper);
+      });
+    }
+
+    function updateEquipmentBody(code, text, isError = false) {
+      const node = apiEquipmentList.querySelector('[data-code="' + code + '"] .api-equipment-body');
+      if (!node) return;
+      node.textContent = text;
+      node.classList.toggle('is-error', !!isError);
+    }
+
+    async function fetchEquipmentMetrics(item, headers) {
+      const url = buildEquipmentUrl(item.code);
+      updateEquipmentBody(item.code, 'GET ' + url + ' ...');
+
+      try {
+        const response = await fetch(url, { headers });
+        const contentType = response.headers.get('content-type') || '';
+        const rawText = await response.text();
+
+        if (!response.ok) {
+          throw new Error('HTTP ' + response.status + ' ' + response.statusText + '\n' + rawText);
+        }
+
+        let displayText = rawText || 'Ответ пустой';
+        if (contentType.includes('application/json')) {
+          try {
+            displayText = JSON.stringify(JSON.parse(rawText), null, 2);
+          } catch {
+            displayText = rawText || 'Ответ пустой';
+          }
+        }
+
+        updateEquipmentBody(item.code, displayText);
+        return true;
+      } catch (err) {
+        updateEquipmentBody(item.code, err.message || 'Ошибка получения данных', true);
+        return false;
+      }
+    }
+
+    async function refreshEquipmentMetrics(manual = false) {
+      const items = collectSelectedEquipment();
+      renderApiEquipmentList(items);
+      if (!items.length) {
+        if (manual) setApiStatus('Нет выбранного оборудования');
+        return;
+      }
+
+      const token = (apiTokenInput.value || '').trim();
+      const headers = {};
+      if (token) {
+        headers['Authorization'] = token.toLowerCase().startsWith('bearer ')
+          ? token
+          : 'Bearer ' + token;
+      }
+
+      setApiStatus('Загружаем показатели для ' + items.length + ' позиций...');
+
+      let successCount = 0;
+      for (const item of items) {
+        const ok = await fetchEquipmentMetrics(item, headers);
+        if (ok) successCount += 1;
+      }
+
+      const total = items.length;
+      if (successCount === total) {
+        setApiStatus('Данные получены для ' + total + ' позиций');
+      } else if (successCount === 0) {
+        setApiStatus('Не удалось получить данные по оборудованию');
+      } else {
+        setApiStatus('Частично получено: ' + successCount + ' из ' + total);
+      }
+    }
+
     async function performApiRequest() {
       const url = buildApiUrl();
       setApiStatus('Запрос выполняется...');
@@ -2378,6 +2572,8 @@
         tr.appendChild(td);
         summaryTableBody.appendChild(tr);
       }
+
+      refreshEquipmentMetrics();
     }
 
     copySummaryBtn.addEventListener('click', async () => {
@@ -2443,13 +2639,17 @@
       apiTokenInput.value = '';
       updateApiPreview();
       clearApiResponse();
+      renderApiEquipmentList([]);
 
       showStep(state.step = 1);
     });
 
     apiBaseUrlInput.addEventListener('input', updateApiPreview);
     apiEndpointPathInput.addEventListener('input', updateApiPreview);
-    checkApiBtn.addEventListener('click', performApiRequest);
+    checkApiBtn.addEventListener('click', () => {
+      performApiRequest();
+      refreshEquipmentMetrics(true);
+    });
     clearApiBtn.addEventListener('click', clearApiResponse);
 
     prevStepBtn.addEventListener('click', () => changeStep(-1));
