@@ -2364,10 +2364,19 @@
       }
 
       const snippet = body.split('\n').slice(0, 12).join('\n');
+
+      let why = 'скорее всего страница документации/авторизации';
+      if (/google tag manager|gtm\.start/i.test(body)) {
+        why = 'публичная страница сайта (API не отдал данные, требуется другой URL или токен)';
+      } else if (/cloudflare|cf-chl-bypass/i.test(body)) {
+        why = 'страница защиты/фильтрации Cloudflare вместо JSON ответа';
+      }
+
       return {
         isHtml: true,
-        message: 'Сервер вернул HTML (скорее всего страница документации/авторизации). ' +
-          'Проверьте маршрут и токен.\n\nПример содержимого:\n' + snippet
+        message: 'Сервер вернул HTML — ' + why + '. ' +
+          'Проверьте маршрут и авторизацию: правильный /api URL, добавлен bearer-токен и CORS для браузера. ' +
+          'Показываем начало ответа для диагностики:\n\n' + snippet
       };
     }
 
