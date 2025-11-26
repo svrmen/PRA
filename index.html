@@ -388,6 +388,10 @@
       margin-bottom: 6px;
     }
 
+    .field-group--inline {
+      gap: 10px;
+    }
+
     .field-label {
       font-size: 12px;
       color: var(--muted);
@@ -478,6 +482,23 @@
 
     .hint-danger {
       color: var(--danger);
+    }
+
+    .token-mode-row {
+      display: grid;
+      grid-template-columns: minmax(0, 1.1fr) minmax(0, 0.9fr);
+      gap: 10px;
+      align-items: center;
+    }
+
+    .token-mode-row input[type="text"] {
+      margin: 0;
+    }
+
+    .token-mode-row small {
+      grid-column: 1 / -1;
+      color: var(--muted);
+      line-height: 1.4;
     }
 
     .table-wrap {
@@ -1486,9 +1507,24 @@
             <div class="field-group">
               <label class="field-label">
                 <span>API-токен (опционально)</span>
-                <small>если сервер требует авторизацию Bearer</small>
+                <small>можно передать как Bearer или как параметр accessCode</small>
               </label>
-              <input type="text" id="apiToken" placeholder="Bearer токен (необязательно)" />
+              <input type="text" id="apiToken" placeholder="токен сервиса (Bearer или accessCode)" />
+            </div>
+
+            <div class="field-group field-group--inline">
+              <label class="field-label">
+                <span>Как передавать токен</span>
+                <small>для Systeme используется query-параметр accessCode, при другом API можно снять галочку</small>
+              </label>
+              <div class="token-mode-row">
+                <label class="checkbox">
+                  <input type="checkbox" id="tokenAsQuery" checked />
+                  Передавать токен как query-параметр
+                </label>
+                <input type="text" id="tokenQueryName" value="accessCode" />
+                <small>Имя параметра для токена (например, accessCode). При отключении используется заголовок Authorization: Bearer.</small>
+              </div>
             </div>
 
             <div class="api-hint-row">
@@ -1745,6 +1781,8 @@
     const equipmentEndpointPathInput = document.getElementById('equipmentEndpointPath');
     const equipmentParamNameInput = document.getElementById('equipmentParamName');
     const apiTokenInput = document.getElementById('apiToken');
+    const tokenAsQueryInput = document.getElementById('tokenAsQuery');
+    const tokenQueryNameInput = document.getElementById('tokenQueryName');
     const apiUrlPreview = document.getElementById('apiUrlPreview');
     const apiStatus = document.getElementById('apiStatus');
     const apiResponseBox = document.getElementById('apiResponseBox');
@@ -2293,13 +2331,35 @@
       return base + path;
     }
 
+    function applyTokenToUrl(url, { mask = false } = {}) {
+      const token = (apiTokenInput.value || '').trim();
+      if (!token || !tokenAsQueryInput.checked) return url;
+
+      const param = (tokenQueryNameInput.value || 'accessCode').trim() || 'accessCode';
+      const value = mask ? '***' : token;
+
+      try {
+        const u = new URL(url);
+        u.searchParams.set(param, value);
+        return u.toString();
+      } catch {
+        const join = url.includes('?') ? '&' : '?';
+        return url + join + encodeURIComponent(param) + '=' + encodeURIComponent(value);
+      }
+    }
+
     function updateApiPreview() {
-      const docsUrl = buildApiUrl();
-      const equipUrl = buildEquipmentApiUrl();
+      const docsUrl = applyTokenToUrl(buildApiUrl(), { mask: true });
+      const equipUrl = applyTokenToUrl(buildEquipmentApiUrl(), { mask: true });
       const paramName = (equipmentParamNameInput.value || 'product').trim() || 'product';
       apiUrlPreview.innerHTML = '<div><strong>GET</strong> ' + docsUrl + '</div>' +
         '<div class="muted" style="font-size:12px;">Оборудование: ' + equipUrl +
         '?' + paramName + '={код}</div>';
+    }
+
+    function syncTokenModeUi() {
+      tokenQueryNameInput.disabled = !tokenAsQueryInput.checked;
+      updateApiPreview();
     }
 
     function renderApiResponse(text, isError = false) {
@@ -2312,16 +2372,17 @@
     }
 
     function buildEquipmentUrl(productCode) {
-      const baseUrl = buildEquipmentApiUrl();
+      let baseUrl = buildEquipmentApiUrl();
       const param = (equipmentParamNameInput.value || 'product').trim() || 'product';
       try {
         const url = new URL(baseUrl);
         url.searchParams.set(param, productCode);
-        return url.toString();
+        baseUrl = url.toString();
       } catch {
         const join = baseUrl.includes('?') ? '&' : '?';
-        return baseUrl + join + encodeURIComponent(param) + '=' + encodeURIComponent(productCode);
+        baseUrl = baseUrl + join + encodeURIComponent(param) + '=' + encodeURIComponent(productCode);
       }
+      return applyTokenToUrl(baseUrl);
     }
 
     function collectSelectedEquipment() {
@@ -2378,7 +2439,7 @@
     function normalizeHeaders() {
       const headers = { 'Accept': 'application/json' };
       const token = (apiTokenInput.value || '').trim();
-      if (token) {
+      if (token && !tokenAsQueryInput.checked) {
         headers['Authorization'] = token.toLowerCase().startsWith('bearer ')
           ? token
           : 'Bearer ' + token;
@@ -2474,7 +2535,7 @@
     }
 
     async function performApiRequest() {
-      const url = buildApiUrl();
+      const url = applyTokenToUrl(buildApiUrl());
       setApiStatus('Запрос выполняется...');
       renderApiResponse('Отправляем GET ' + url + ' ...');
 
@@ -2718,6 +2779,9 @@
       equipmentEndpointPathInput.value = '/documentation-api';
       equipmentParamNameInput.value = 'product';
       apiTokenInput.value = '';
+      tokenAsQueryInput.checked = true;
+      tokenQueryNameInput.value = 'accessCode';
+      tokenQueryNameInput.disabled = false;
       updateApiPreview();
       clearApiResponse();
       renderApiEquipmentList([]);
@@ -2729,6 +2793,9 @@
     apiEndpointPathInput.addEventListener('input', updateApiPreview);
     equipmentEndpointPathInput.addEventListener('input', updateApiPreview);
     equipmentParamNameInput.addEventListener('input', updateApiPreview);
+    apiTokenInput.addEventListener('input', () => updateApiPreview());
+    tokenAsQueryInput.addEventListener('change', syncTokenModeUi);
+    tokenQueryNameInput.addEventListener('input', updateApiPreview);
     checkApiBtn.addEventListener('click', () => {
       performApiRequest();
       refreshEquipmentMetrics(true);
@@ -2752,6 +2819,7 @@
       });
     });
 
+    syncTokenModeUi();
     showStep(state.step);
   })();
 </script>
