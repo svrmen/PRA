@@ -2352,6 +2352,14 @@
       return base + path;
     }
 
+    function buildEquipmentLink(code) {
+      const equipUrl = buildEquipmentApiUrl();
+      const paramName = (equipmentParamNameInput.value || 'product').trim() || 'product';
+      if (!equipUrl) return '';
+      const separator = equipUrl.includes('?') ? '&' : '?';
+      return equipUrl + separator + encodeURIComponent(paramName) + '=' + encodeURIComponent(code);
+    }
+
     function updateApiPreview() {
       const docsUrl = buildApiUrl();
       const equipUrl = buildEquipmentApiUrl();
@@ -2493,15 +2501,24 @@
     function renderCatalogCard(entry, code) {
       const specs = (entry.specs || []).map(s => '<li>' + s + '</li>').join('');
       const mass = entry.mass ? '<div class="muted">Масса: ' + entry.mass + '</div>' : '';
+      const apiLink = buildEquipmentLink(code);
+      const fallbackSvg =
+        'data:image/svg+xml;utf8,' +
+        encodeURIComponent(`<svg xmlns="http://www.w3.org/2000/svg" width="320" height="200" viewBox="0 0 320 200" fill="none" role="img">` +
+        `<rect width="320" height="200" fill="#f1f5f9" />` +
+        `<text x="50%" y="50%" dominant-baseline="middle" text-anchor="middle" fill="#0f172a" font-family="Arial, sans-serif" font-size="20">${code}</text>` +
+        `</svg>`);
+      const photoSrc = entry.photo || fallbackSvg;
       return `
         <div class="catalog-card">
           <div class="catalog-card__media">
-            <img src="${entry.photo}" alt="${entry.title}" onerror="this.src='https://dummyimage.com/320x200/e2e8f0/0f172a&text=${code}';" />
+            <img src="${photoSrc}" alt="${entry.title}" onerror="this.src='${fallbackSvg}';" />
           </div>
           <div class="catalog-card__body">
             <div class="catalog-card__title">${entry.title || code}</div>
             ${mass}
             ${specs ? '<ul>' + specs + '</ul>' : ''}
+            ${apiLink ? '<div class="muted" style="margin-top:6px;">Ссылка на API: <a href="' + apiLink + '" target="_blank" rel="noreferrer noopener">' + apiLink + '</a></div>' : ''}
           </div>
         </div>
       `;
