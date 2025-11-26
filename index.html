@@ -2353,13 +2353,22 @@
       return headers;
     }
 
-    function formatPossiblyHtml(text) {
-      const lower = (text || '').toLowerCase();
-      if (lower.includes('<html') || lower.includes('<!doctype html')) {
-        const snippet = text.split('\n').slice(0, 10).join('\n');
-        return 'Сервер вернул HTML (возможно страница документации/авторизации). Проверьте URL и токен.\n\n' + snippet;
+    function detectHtmlPayload(text, contentType = '') {
+      const normalized = (contentType || '').toLowerCase();
+      const body = text || '';
+      const looksLikeHtml = normalized.includes('text/html') ||
+        /<\s*!doctype\s+html/i.test(body) || /<html/i.test(body);
+
+      if (!looksLikeHtml) {
+        return { isHtml: false, message: body || 'Ответ пустой' };
       }
-      return text || 'Ответ пустой';
+
+      const snippet = body.split('\n').slice(0, 12).join('\n');
+      return {
+        isHtml: true,
+        message: 'Сервер вернул HTML (скорее всего страница документации/авторизации). ' +
+          'Проверьте маршрут и токен.\n\nПример содержимого:\n' + snippet
+      };
     }
 
     async function fetchEquipmentMetrics(item, headers) {
@@ -2384,8 +2393,9 @@
           }
         }
 
-        updateEquipmentBody(item.code, formatPossiblyHtml(displayText));
-        return true;
+        const { isHtml, message } = detectHtmlPayload(displayText, contentType);
+        updateEquipmentBody(item.code, message, isHtml);
+        return !isHtml;
       } catch (err) {
         updateEquipmentBody(item.code, err.message || 'Ошибка получения данных', true);
         return false;
@@ -2445,8 +2455,9 @@
           }
         }
 
-        renderApiResponse(formatPossiblyHtml(displayText), false);
-        setApiStatus('Успешно · ' + response.status);
+        const { isHtml, message } = detectHtmlPayload(displayText, contentType);
+        renderApiResponse(message, isHtml);
+        setApiStatus(isHtml ? 'Получен HTML — проверьте URL/токен' : 'Успешно · ' + response.status);
       } catch (err) {
         renderApiResponse(err.message || 'Не удалось выполнить запрос', true);
         setApiStatus('Ошибка запроса');
