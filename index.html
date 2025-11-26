@@ -2460,7 +2460,7 @@
       node.classList.toggle('is-error', !!isError);
     }
 
-    const equipmentCatalog = {
+  const equipmentCatalog = {
       GM3P13: {
         title: 'Автомат защиты двигателя GM3P13',
         photo: makeInlinePlaceholder('GM3P13'),
@@ -2481,8 +2481,18 @@
           'Совместим с расцепителями и доп. блоками GM2/GM3'
         ]
       },
+      MC1E09: {
+        title: 'Контактор MC1E09',
+        photo: makeInlinePlaceholder('MC1E09'),
+        mass: '0,40 кг',
+        specs: [
+          'Ie AC-3 (400 В): 20 А',
+          'Мощность двигателя до 9 кВт при 400 В',
+          'Катушки серии MA1**, допконтакты фронт/бок'
+        ]
+      },
       MC1E12: {
-        title: 'Контактор MC1E 12',
+        title: 'Контактор MC1E12',
         photo: makeInlinePlaceholder('MC1E12'),
         mass: '0,42 кг',
         specs: [
@@ -2491,8 +2501,18 @@
           'Катушки серии MA1**, фронт/боковые допконтакты'
         ]
       },
+      MC1E18: {
+        title: 'Контактор MC1E18',
+        photo: makeInlinePlaceholder('MC1E18'),
+        mass: '0,48 кг',
+        specs: [
+          'Ie AC-3 (400 В): 40 А',
+          'Мощность двигателя до 18,5 кВт при 400 В',
+          'Поддержка доп. блоков MA1* и варисторов MA18*RC'
+        ]
+      },
       MC1D12: {
-        title: 'Контактор MC1D 12',
+        title: 'Контактор MC1D12',
         photo: makeInlinePlaceholder('MC1D12'),
         mass: '0,34 кг',
         specs: [
@@ -2501,14 +2521,44 @@
           'Поддерживает блокировку MA1M и RC/варисторы серии MAD4'
         ]
       },
-      MRE14: {
-        title: 'Тепловое реле MRE14',
-        photo: makeInlinePlaceholder('MRE14'),
+      MC1D25: {
+        title: 'Контактор MC1D25',
+        photo: makeInlinePlaceholder('MC1D25'),
+        mass: '0,36 кг',
+        specs: [
+          'Ie AC-3 (400 В): 32 А',
+          'Мощность двигателя до 15 кВт при 400 В',
+          'Катушки DC/AC серии MAD4**, механическая блокировка MA1M'
+        ]
+      },
+      MRE2513: {
+        title: 'Тепловое реле MRE2513',
+        photo: makeInlinePlaceholder('MRE2513'),
         mass: '0,26 кг',
         specs: [
           'Диапазон тока 9–13 А',
-          'Для контакторов MC1E 06–32',
-          'Кнопки TEST/RESET, переключатель автомат/ручной'
+          'Совместимость: MC1E 12–38',
+          'TEST/RESET, автоматический и ручной сброс'
+        ]
+      },
+      MRE3832: {
+        title: 'Тепловое реле MRE3832',
+        photo: makeInlinePlaceholder('MRE3832'),
+        mass: '0,28 кг',
+        specs: [
+          'Диапазон тока 23–32 А',
+          'Совместимость: MC1E 25–38',
+          'Встроенные допконтакты 1НО+1НЗ'
+        ]
+      },
+      MRE9313: {
+        title: 'Тепловое реле MRE9313',
+        photo: makeInlinePlaceholder('MRE9313'),
+        mass: '0,30 кг',
+        specs: [
+          'Диапазон тока 9–13 А',
+          'Совместимость: MC1E 40–95',
+          'Ручной/авто режим, независимый сброс'
         ]
       },
       MRD16: {
@@ -2519,6 +2569,16 @@
           'Диапазон тока 11,3–16 А',
           'Для контакторов MC1D 09–38',
           'Ручной/авто сброс, доп. контакты 1NO+1NC'
+        ]
+      },
+      MRD3355: {
+        title: 'Тепловое реле MRD3355',
+        photo: makeInlinePlaceholder('MRD3355'),
+        mass: '0,32 кг',
+        specs: [
+          'Диапазон тока 35–47 А',
+          'Совместимость: MC1D 40–95',
+          'Клеммы с винтовым прижимом, сброс вручную/авто'
         ]
       }
     };
@@ -2533,6 +2593,7 @@
     function renderCatalogCard(entry, code) {
       const specs = (entry.specs || []).map(s => '<li>' + s + '</li>').join('');
       const mass = entry.mass ? '<div class="muted">Масса: ' + entry.mass + '</div>' : '';
+      const displayTitle = entry.title ? (entry.title + ' · ' + code) : code;
       const apiLink = buildEquipmentLink(code);
       const fallbackSvg =
         'data:image/svg+xml;utf8,' +
@@ -2547,7 +2608,7 @@
             <img src="${photoSrc}" alt="${entry.title}" onerror="this.src='${fallbackSvg}';" />
           </div>
           <div class="catalog-card__body">
-            <div class="catalog-card__title">${entry.title || code}</div>
+            <div class="catalog-card__title">${displayTitle}</div>
             ${mass}
             ${specs ? '<ul>' + specs + '</ul>' : ''}
             ${apiLink ? '<div class="muted" style="margin-top:6px;">Ссылка на API: <a href="' + apiLink + '" target="_blank" rel="noreferrer noopener">' + apiLink + '</a></div>' : ''}
