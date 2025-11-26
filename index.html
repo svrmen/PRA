@@ -1,281 +1,490 @@
 <!DOCTYPE html>
 <html lang="ru">
 <head>
-  <meta charset="UTF-8">
-  <title>Конфигуратор ПРА — SystemePact M</title>
-  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <meta charset="UTF-8" />
+  <title>Конфигуратор защиты двигателя · SystemePact-M</title>
+  <meta name="viewport" content="width=device-width, initial-scale=1" />
   <style>
-    *, *::before, *::after {
+    :root {
+      --bg: #f3f4f6;
+      --bg-elevated: #ffffff;
+      --card: #ffffff;
+      --accent: #00b15d;
+      --accent-soft: rgba(0, 177, 93, 0.08);
+      --accent-border: rgba(0, 177, 93, 0.5);
+      --border: #e2e8f0;
+      --border-soft: #e5e7eb;
+      --text: #0f172a;
+      --muted: #64748b;
+      --danger: #ef4444;
+      --radius-lg: 16px;
+      --radius-xl: 22px;
+      --shadow-soft: 0 10px 30px rgba(15, 23, 42, 0.08);
+      --step-width: 260px;
+      --transition-fast: 0.18s ease-out;
+      --transition-med: 0.25s ease-out;
+    }
+
+    * {
       box-sizing: border-box;
     }
-    html, body {
-      margin: 0;
-      padding: 0;
-      font-family: system-ui, -apple-system, BlinkMacSystemFont, "Segoe UI", sans-serif;
-      background: #f3f4f6;
-      color: #111827;
-    }
+
     body {
+      margin: 0;
+      font-family: system-ui, -apple-system, BlinkMacSystemFont, "Segoe UI", sans-serif;
+      background: var(--bg);
+      color: var(--text);
       min-height: 100vh;
     }
-    .app {
-      max-width: 1400px;
+
+    .app-shell {
+      max-width: 1240px;
       margin: 0 auto;
-      padding: 16px;
+      padding: 24px 24px 32px;
+      display: flex;
+      flex-direction: column;
+      gap: 18px;
     }
-    header {
+
+    header.app-header {
       display: flex;
       align-items: center;
       justify-content: space-between;
       gap: 16px;
-      margin-bottom: 16px;
     }
-    header h1 {
-      font-size: 20px;
+
+    .logo-block {
+      display: flex;
+      align-items: center;
+      gap: 10px;
+    }
+
+    .logo-mark {
+      width: 34px;
+      height: 34px;
+      border-radius: 12px;
+      background: radial-gradient(circle at 20% 0, #00b15d, #059669 60%, #047857 100%);
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      box-shadow: 0 12px 26px rgba(16, 185, 129, 0.45);
+      font-weight: 700;
+      font-size: 17px;
+      color: #f9fafb;
+    }
+
+    .logo-text {
+      display: flex;
+      flex-direction: column;
+      gap: 1px;
+    }
+
+    .logo-text strong {
+      font-size: 16px;
+      letter-spacing: 0.03em;
+    }
+
+    .logo-text span {
+      font-size: 12px;
+      color: var(--muted);
+    }
+
+    .header-meta {
+      display: flex;
+      flex-wrap: wrap;
+      gap: 8px;
+      justify-content: flex-end;
+      font-size: 11px;
+      color: var(--muted);
+    }
+
+    .pill {
+      border-radius: 999px;
+      border: 1px solid var(--border);
+      padding: 4px 10px;
+      display: flex;
+      align-items: center;
+      gap: 6px;
+      background: rgba(255, 255, 255, 0.9);
+      backdrop-filter: blur(10px);
+    }
+
+    .pill strong {
+      font-weight: 500;
+      color: #111827;
+    }
+
+    main.app-main {
+      display: grid;
+      grid-template-columns: minmax(0, var(--step-width)) minmax(0, 1fr);
+      gap: 16px;
+      align-items: flex-start;
+    }
+
+    .steps-panel {
+      background: var(--bg-elevated);
+      border-radius: var(--radius-xl);
+      padding: 14px 14px 12px;
+      border: 1px solid var(--border-soft);
+      box-shadow: var(--shadow-soft);
+      position: sticky;
+      top: 18px;
+    }
+
+    .steps-title {
+      font-size: 13px;
+      font-weight: 600;
+      letter-spacing: 0.08em;
+      text-transform: uppercase;
+      color: var(--muted);
+      margin-bottom: 8px;
+    }
+
+    .steps-list {
+      list-style: none;
       margin: 0;
+      padding: 0;
+      display: flex;
+      flex-direction: column;
+      gap: 4px;
     }
-    header small {
-      color: #6b7280;
+
+    .step-item {
+      display: flex;
+      align-items: flex-start;
+      gap: 8px;
+      padding: 7px 8px;
+      border-radius: 12px;
+      cursor: default;
+      transition: background var(--transition-fast), border var(--transition-fast),
+                  transform var(--transition-fast);
+      border: 1px solid transparent;
     }
+
+    .step-item.is-active {
+      background: var(--accent-soft);
+      border-color: var(--accent-border);
+      transform: translateX(1px);
+    }
+
+    .step-item.is-complete {
+      background: rgba(15, 23, 42, 0.02);
+      border-color: var(--accent-border);
+    }
+
+    .step-index {
+      width: 22px;
+      height: 22px;
+      border-radius: 999px;
+      border: 1px solid var(--border);
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      font-size: 11px;
+      color: var(--muted);
+      flex-shrink: 0;
+      background: #ffffff;
+    }
+
+    .step-item.is-active .step-index {
+      border-color: var(--accent);
+      background: radial-gradient(circle at 20% 0, #00b15d, #059669 60%, #047857);
+      color: #ffffff;
+      font-weight: 600;
+    }
+
+    .step-item.is-complete .step-index {
+      border-color: var(--accent);
+      color: var(--accent);
+    }
+
+    .step-body {
+      flex: 1;
+      min-width: 0;
+    }
+
+    .step-label {
+      font-size: 13px;
+      font-weight: 500;
+    }
+
+    .step-caption {
+      font-size: 11px;
+      color: var(--muted);
+    }
+
+    .steps-footer {
+      margin-top: 10px;
+      font-size: 11px;
+      color: var(--muted);
+      border-top: 1px dashed var(--border-soft);
+      padding-top: 8px;
+    }
+
+    .steps-footer strong {
+      color: var(--accent);
+    }
+
+    .content-panel {
+      background: var(--bg-elevated);
+      border-radius: 24px;
+      padding: 16px 18px 14px;
+      border: 1px solid var(--border-soft);
+      box-shadow: var(--shadow-soft);
+      min-height: 480px;
+      display: flex;
+      flex-direction: column;
+    }
+
+    .content-header {
+      display: flex;
+      justify-content: space-between;
+      align-items: flex-start;
+      gap: 10px;
+      margin-bottom: 10px;
+    }
+
+    .content-title-block h1 {
+      margin: 0;
+      font-size: 18px;
+    }
+
+    .content-title-block p {
+      margin: 2px 0 0;
+      font-size: 13px;
+      color: var(--muted);
+    }
+
     .badge {
+      font-size: 11px;
+      padding: 3px 8px;
+      border-radius: 999px;
+      border: 1px solid var(--border);
+      color: var(--muted);
       display: inline-flex;
       align-items: center;
       gap: 6px;
-      padding: 4px 8px;
+      background: #ffffff;
+    }
+
+    .badge-dot {
+      width: 6px;
+      height: 6px;
       border-radius: 999px;
-      background: #e5f2ff;
-      color: #1d4ed8;
-      font-size: 12px;
+      background: var(--accent);
+      box-shadow: 0 0 0 4px rgba(0, 177, 93, 0.18);
+    }
+
+    .steps-nav-main {
+      display: flex;
+      gap: 10px;
+      margin-top: 4px;
+      font-size: 11px;
+      color: var(--muted);
+      align-items: center;
+      flex-wrap: wrap;
+      justify-content: flex-end;
+    }
+
+    .steps-nav-main span {
+      display: inline-flex;
+      align-items: center;
+      gap: 4px;
+    }
+
+    .steps-nav-main b {
+      color: #111827;
       font-weight: 500;
     }
-    .layout {
-      display: grid;
-      grid-template-columns: minmax(0, 360px) minmax(0, 1fr);
-      gap: 16px;
+
+    .steps-nav-main .accent {
+      color: var(--accent);
+      font-weight: 500;
     }
+
+    .step-view {
+      display: none;
+      flex: 1;
+      flex-direction: column;
+      gap: 10px;
+      margin-top: 4px;
+    }
+
+    .step-view.is-active {
+      display: flex;
+    }
+
+    .cards-grid {
+      display: grid;
+      grid-template-columns: minmax(0, 1.1fr) minmax(0, 1fr);
+      gap: 10px;
+    }
+
+    .cards-grid-full {
+      display: grid;
+      grid-template-columns: minmax(0, 1fr);
+      gap: 10px;
+    }
+
     @media (max-width: 960px) {
-      .layout {
-        grid-template-columns: 1fr;
+      main.app-main {
+        grid-template-columns: minmax(0, 1fr);
+      }
+      .steps-panel {
+        position: static;
+        order: -1;
+      }
+      .cards-grid {
+        grid-template-columns: minmax(0, 1fr);
       }
     }
-    .panel {
-      background: #ffffff;
-      border-radius: 12px;
-      box-shadow: 0 10px 25px rgba(15,23,42,0.06);
-      padding: 16px 18px 18px;
-    }
-    .panel-title {
-      font-size: 15px;
-      font-weight: 600;
-      margin: 0 0 10px;
+
+    .card {
+      background: var(--card);
+      border-radius: var(--radius-lg);
+      border: 1px solid var(--border);
+      padding: 10px 11px 10px;
       display: flex;
-      align-items: center;
+      flex-direction: column;
+      gap: 8px;
+    }
+
+    .card-header {
+      display: flex;
       justify-content: space-between;
+      align-items: center;
       gap: 8px;
     }
-    .panel-title span.sub {
+
+    .card-title {
+      font-size: 14px;
+      font-weight: 500;
+    }
+
+    .card-subtitle {
       font-size: 12px;
-      font-weight: 400;
-      color: #6b7280;
+      color: var(--muted);
     }
-    .section {
-      border-top: 1px solid #e5e7eb;
-      padding-top: 12px;
-      margin-top: 12px;
+
+    .card-tag {
+      font-size: 11px;
+      padding: 2px 8px;
+      border-radius: 999px;
+      border: 1px solid var(--border);
+      color: var(--muted);
+      background: #f9fafb;
     }
-    .section:first-of-type {
-      border-top: none;
-      padding-top: 0;
-      margin-top: 0;
+
+    .card-tag--accent {
+      border-color: var(--accent-border);
+      background: var(--accent-soft);
+      color: var(--accent);
     }
-    .section-title {
-      font-size: 13px;
-      font-weight: 600;
-      margin-bottom: 8px;
+
+    .field-group {
       display: flex;
+      flex-direction: column;
+      gap: 4px;
+      margin-bottom: 6px;
+    }
+
+    .field-label {
+      font-size: 12px;
+      color: var(--muted);
+      display: flex;
+      justify-content: space-between;
       align-items: center;
       gap: 6px;
     }
-    .section-title small {
-      font-weight: 400;
-      color: #6b7280;
+
+    .field-label small {
       font-size: 11px;
+      color: #94a3b8;
     }
-    .field {
-      margin-bottom: 10px;
-    }
-    .field label {
-      display: block;
-      font-size: 12px;
-      font-weight: 500;
-      margin-bottom: 4px;
-    }
-    .field small {
-      display: block;
-      font-size: 11px;
-      color: #6b7280;
-      margin-top: 2px;
-    }
-    .inline {
-      display: flex;
-      flex-wrap: wrap;
-      gap: 8px;
-    }
-    .inline > * {
-      flex: 1;
-      min-width: 100px;
-    }
+
     input[type="number"],
-    select {
+    select,
+    input[type="text"] {
       width: 100%;
-      padding: 6px 8px;
-      border-radius: 8px;
-      border: 1px solid #d1d5db;
-      font-size: 13px;
-      background: #f9fafb;
-      outline: none;
-      transition: border-color 0.15s, box-shadow 0.15s, background 0.15s;
-    }
-    input[type="number"]:focus,
-    select:focus {
-      border-color: #2563eb;
-      box-shadow: 0 0 0 1px rgba(37,99,235,0.2);
+      border-radius: 999px;
+      border: 1px solid var(--border);
+      padding: 6px 10px;
       background: #ffffff;
+      color: var(--text);
+      font-size: 13px;
+      outline: none;
+      transition: border var(--transition-fast), box-shadow var(--transition-fast),
+                  background var(--transition-fast), transform var(--transition-fast);
     }
-    input[type="radio"],
-    input[type="checkbox"] {
-      accent-color: #2563eb;
+
+    input[type="number"]:focus,
+    select:focus,
+    input[type="text"]:focus {
+      border-color: var(--accent);
+      box-shadow: 0 0 0 1px rgba(0, 177, 93, 0.4);
+      transform: translateY(-0.5px);
     }
-    .radio-group,
-    .chip-group {
+
+    input[type="number"]::-webkit-outer-spin-button,
+    input[type="number"]::-webkit-inner-spin-button {
+      -webkit-appearance: none;
+      margin: 0;
+    }
+
+    input[type="number"] {
+      -moz-appearance: textfield;
+    }
+
+    .radio-row,
+    .checkbox-row {
       display: flex;
       flex-wrap: wrap;
-      gap: 6px;
+      gap: 6px 12px;
+      font-size: 12px;
     }
+
     .chip {
       display: inline-flex;
       align-items: center;
       gap: 6px;
-      padding: 4px 10px;
       border-radius: 999px;
-      border: 1px solid #d1d5db;
-      background: #f9fafb;
-      font-size: 12px;
+      padding: 3px 10px;
+      border: 1px solid var(--border);
       cursor: pointer;
-      transition: background 0.15s, border-color 0.15s, box-shadow 0.15s;
+      user-select: none;
+      background: #ffffff;
+      transition: border var(--transition-fast), background var(--transition-fast),
+                  transform var(--transition-fast);
     }
+
     .chip input {
       margin: 0;
     }
-    .chip.chip-selected {
-      border-color: #2563eb;
-      background: #e0edff;
-      box-shadow: 0 0 0 1px rgba(37,99,235,0.2);
+
+    .chip:hover {
+      border-color: var(--accent-border);
+      background: #f9fafb;
+      transform: translateY(-0.3px);
     }
+
     .hint {
       font-size: 11px;
-      color: #6b7280;
-      margin-top: 4px;
-    }
-    .pill {
-      display: inline-flex;
-      align-items: center;
-      gap: 4px;
-      padding: 2px 8px;
-      border-radius: 999px;
-      font-size: 11px;
-      background: #eff6ff;
-      color: #1d4ed8;
-      margin-left: 4px;
-    }
-    .pill.warning {
-      background: #fef3c7;
-      color: #92400e;
-    }
-    .pill.ok {
-      background: #dcfce7;
-      color: #166534;
-    }
-    .pill.bad {
-      background: #fee2e2;
-      color: #b91c1c;
-    }
-    .muted {
-      color: #6b7280;
-      font-size: 12px;
-    }
-    .divider {
-      border-top: 1px dashed #e5e7eb;
-      margin: 8px 0;
-    }
-    .flex-row {
-      display: flex;
-      justify-content: space-between;
-      align-items: center;
-      gap: 8px;
-    }
-    .flex-row > * {
-      flex: 1;
-    }
-    .flex-row-tight {
-      display: flex;
-      align-items: center;
-      justify-content: space-between;
-      gap: 8px;
+      color: var(--muted);
     }
 
-    /* Right side */
-    #baseDeviceCard {
-      border-radius: 10px;
-      padding: 12px 14px;
-      background: linear-gradient(135deg, #eff6ff, #e0f2fe);
-      border: 1px solid #bfdbfe;
-      margin-bottom: 12px;
-    }
-    #baseDeviceCard.empty {
-      background: #f9fafb;
-      border-style: dashed;
-      border-color: #d1d5db;
-    }
-    #baseDeviceCard h2 {
-      margin: 0 0 4px;
-      font-size: 15px;
-    }
-    #baseDeviceCard .subtitle {
-      font-size: 12px;
-      color: #374151;
-      margin-bottom: 4px;
-    }
-    #baseDeviceCard .meta {
-      font-size: 11px;
-      color: #4b5563;
-    }
-    #baseDeviceCard .meta span {
-      margin-right: 10px;
+    .hint strong {
+      color: var(--accent);
     }
 
-    .tag-row {
-      display: flex;
-      flex-wrap: wrap;
-      gap: 4px;
-      margin: 4px 0;
+    .hint-danger {
+      color: var(--danger);
     }
 
-    .tag {
-      font-size: 11px;
-      padding: 2px 8px;
-      border-radius: 999px;
-      background: #e5e7eb;
-      color: #374151;
-    }
-
-    #bomSummary {
-      font-size: 13px;
-      margin-bottom: 6px;
-      display: flex;
-      justify-content: space-between;
-      align-items: center;
-      gap: 8px;
+    .table-wrap {
+      border-radius: 14px;
+      border: 1px solid var(--border);
+      overflow: hidden;
+      background: #ffffff;
     }
 
     table {
@@ -283,1625 +492,1790 @@
       border-collapse: collapse;
       font-size: 12px;
     }
+
     thead {
       background: #f9fafb;
     }
-    th, td {
-      padding: 6px 6px;
+
+    th,
+    td {
+      padding: 6px 8px;
+      border-bottom: 1px solid var(--border-soft);
       text-align: left;
-      border-bottom: 1px solid #e5e7eb;
-      vertical-align: top;
-    }
-    th {
-      font-weight: 600;
-      font-size: 12px;
-      color: #4b5563;
-    }
-    tbody tr:nth-child(even) {
-      background: #f9fafb;
-    }
-    tbody tr.base-row {
-      background: #e0f2fe;
-    }
-    tbody tr td.code-cell {
-      font-family: "SF Mono", Menlo, Monaco, Consolas, "Liberation Mono", "Courier New", monospace;
-      font-size: 11px;
-    }
-    .bom-empty {
-      font-size: 12px;
-      color: #6b7280;
-      padding: 8px 0;
     }
 
-    .actions-row {
-      display: flex;
-      flex-wrap: wrap;
-      gap: 8px;
-      margin-top: 10px;
-      justify-content: flex-end;
+    th {
+      font-weight: 500;
+      color: var(--muted);
+      white-space: nowrap;
     }
-    button.btn {
+
+    tbody tr:last-child td {
+      border-bottom: none;
+    }
+
+    tbody tr {
+      transition: background var(--transition-fast), transform var(--transition-fast),
+                  box-shadow var(--transition-fast), border var(--transition-fast);
+    }
+
+    tbody tr:hover {
+      background: #f9fafb;
+      transform: translateY(-0.2px);
+    }
+
+    tbody tr.recommended {
+      background: var(--accent-soft);
+      border-left: 2px solid var(--accent);
+    }
+
+    tbody tr.recommended:hover {
+      background: rgba(0, 177, 93, 0.12);
+    }
+
+    .table-small-note {
+      padding: 4px 8px 6px;
+      font-size: 11px;
+      color: var(--muted);
+      background: #f9fafb;
+      border-top: 1px solid var(--border-soft);
+    }
+
+    .tag-inline {
+      font-size: 11px;
+      padding: 2px 6px;
       border-radius: 999px;
-      border: 1px solid transparent;
-      background: #2563eb;
-      color: #ffffff;
-      font-size: 12px;
-      padding: 6px 12px;
+      border: 1px solid var(--border);
+      color: var(--muted);
+      white-space: nowrap;
+    }
+
+    .tag-inline--ok {
+      border-color: var(--accent-border);
+      color: var(--accent);
+      background: var(--accent-soft);
+    }
+
+    .tag-inline--warn {
+      border-color: #fed7aa;
+      color: #c05621;
+      background: #fffbeb;
+    }
+
+    .content-footer {
+      margin-top: 12px;
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      gap: 10px;
+      border-top: 1px solid var(--border-soft);
+      padding-top: 10px;
+    }
+
+    .nav-buttons {
+      display: inline-flex;
+      gap: 8px;
+    }
+
+    button {
+      border-radius: 999px;
+      border: none;
       cursor: pointer;
+      font-family: inherit;
+      font-size: 13px;
+      padding: 7px 14px;
       display: inline-flex;
       align-items: center;
       gap: 6px;
-      transition: background 0.15s, box-shadow 0.15s, transform 0.05s;
+      transition: background var(--transition-med), transform var(--transition-fast),
+                  box-shadow var(--transition-fast), opacity var(--transition-fast);
     }
-    button.btn.secondary {
+
+    button:disabled {
+      opacity: 0.45;
+      cursor: not-allowed;
+      box-shadow: none;
+      transform: none;
+    }
+
+    .btn-secondary {
+      background: #ffffff;
+      color: var(--muted);
+      border: 1px solid var(--border);
+    }
+
+    .btn-secondary:hover:not(:disabled) {
       background: #f9fafb;
-      color: #111827;
-      border-color: #d1d5db;
-    }
-    button.btn:active {
-      transform: translateY(1px);
-      box-shadow: 0 1px 2px rgba(15,23,42,0.2) inset;
-    }
-    button.btn:disabled {
-      opacity: 0.5;
-      cursor: default;
-    }
-    .btn span.icon {
-      font-size: 14px;
-      line-height: 1;
+      transform: translateY(-0.3px);
     }
 
-    .alert {
-      font-size: 11px;
-      padding: 4px 8px;
-      border-radius: 6px;
-      margin-top: 4px;
-    }
-    .alert.warn {
-      background: #fef3c7;
-      color: #92400e;
-      border: 1px solid #facc15;
-    }
-    .alert.info {
-      background: #eff6ff;
-      color: #1d4ed8;
-      border: 1px solid #bfdbfe;
-    }
-    .alert.error {
-      background: #fee2e2;
-      color: #b91c1c;
-      border: 1px solid #fecaca;
+    .btn-primary {
+      background: linear-gradient(90deg, #00b15d, #059669);
+      color: #ffffff;
+      font-weight: 600;
+      box-shadow: 0 10px 24px rgba(16, 185, 129, 0.45);
     }
 
-    .small-note {
-      font-size: 10px;
-      color: #9ca3af;
-      margin-top: 4px;
+    .btn-primary:hover:not(:disabled) {
+      transform: translateY(-0.7px);
+      box-shadow: 0 16px 32px rgba(16, 185, 129, 0.6);
     }
 
-    .badge-device {
-      display: inline-flex;
-      align-items: center;
-      gap: 4px;
-      padding: 3px 8px;
-      border-radius: 999px;
-      font-size: 11px;
-      background: #e5e7eb;
-      color: #374151;
+    .summary-box {
+      font-size: 12px;
+      line-height: 1.5;
+      background: #f9fafb;
+      border-radius: 12px;
+      border: 1px dashed var(--border);
+      padding: 8px 10px;
+      white-space: pre-wrap;
+    }
+
+    .summary-grid {
+      display: grid;
+      grid-template-columns: minmax(0, 1.1fr) minmax(0, 1fr);
+      gap: 8px;
+    }
+
+    @media (max-width: 960px) {
+      .summary-grid {
+        grid-template-columns: minmax(0, 1fr);
+      }
+    }
+
+    .summary-title {
+      font-size: 13px;
+      font-weight: 500;
+      margin-bottom: 4px;
+    }
+
+    .summary-table td {
+      border-bottom-color: var(--border-soft);
+    }
+
+    .summary-table tr:last-child td {
+      border-bottom: none;
+    }
+
+    .summary-table th {
+      width: 120px;
+      font-weight: 500;
+    }
+
+    .summary-table th,
+    .summary-table td {
+      font-size: 12px;
+    }
+
+    .summary-accessories-list {
+      margin: 0;
+      padding-left: 16px;
+      font-size: 12px;
+    }
+
+    .summary-accessories-list li {
+      margin: 0 0 2px;
+    }
+
+    .muted {
+      color: var(--muted);
+    }
+
+    .hidden {
+      display: none !important;
     }
   </style>
 </head>
 <body>
-<div class="app">
-  <header>
-    <div>
-      <h1>Конфигуратор пускорегулирующей аппаратуры — SystemePact&nbsp;M</h1>
-      <small>Путь «а»: выбор отдельных продуктов (автомат защиты двигателя, контактор, тепловое реле) и аксессуаров</small>
+<div class="app-shell">
+  <header class="app-header">
+    <div class="logo-block">
+      <div class="logo-mark">M</div>
+      <div class="logo-text">
+        <strong>Конфигуратор ПРА · SystemePact-M</strong>
+        <span>Защита двигателя · путь А: продукты</span>
+      </div>
     </div>
-    <div class="badge">
-      <span>Серия M</span>
-      <span style="width: 6px; height: 6px; border-radius: 999px; background:#22c55e;"></span>
-      <span>Systeme Electric</span>
+    <div class="header-meta">
+      <div class="pill">
+        <span>Режим:</span><strong>Инженер-проектировщик</strong>
+      </div>
+      <div class="pill">
+        <span>Оборудование:</span><strong>GM2ME/GM3P · MC1E/MC1D · MRE/MRD</strong>
+      </div>
     </div>
   </header>
 
-  <main class="layout">
-    <!-- Левая панель — выбор -->
-    <aside class="panel" id="leftPanel">
-      <h2 class="panel-title">
-        Параметры подбора
-        <span class="sub">Сначала выбираем базовое устройство, затем аксессуары</span>
-      </h2>
-
-      <!-- Тип оборудования -->
-      <section class="section">
-        <div class="section-title">Шаг 1. Тип оборудования</div>
-        <div class="radio-group">
-          <label class="chip chip-selected">
-            <input type="radio" name="deviceType" value="breaker" checked>
-            Автомат защиты двигателя GM2/GM3
-          </label>
-          <label class="chip">
-            <input type="radio" name="deviceType" value="contactor">
-            Контактор MC1D / MC1E
-          </label>
-          <label class="chip">
-            <input type="radio" name="deviceType" value="thermal">
-            Тепловое реле MRD / MRE
-          </label>
-        </div>
-        <div class="hint">Бренд фиксирован: Systeme Electric. Dekraft добавится отдельным шагом.</div>
-      </section>
-
-      <!-- Общие параметры двигателя / цепи -->
-      <section class="section">
-        <div class="section-title">
-          Шаг 2. Номинальные параметры
-          <small>Подбор по мощности или по току</small>
-        </div>
-
-        <div class="field">
-          <label>Способ подбора</label>
-          <div class="radio-group">
-            <label class="chip chip-selected">
-              <input type="radio" name="calcMode" value="power" checked>
-              По мощности двигателя (кВт)
-            </label>
-            <label class="chip">
-              <input type="radio" name="calcMode" value="current">
-              По току (А)
-            </label>
+  <main class="app-main">
+    <aside class="steps-panel">
+      <div class="steps-title">Шаги подбора</div>
+      <ol class="steps-list">
+        <li class="step-item is-active" data-step-label="1">
+          <div class="step-index">1</div>
+          <div class="step-body">
+            <div class="step-label">Исходные данные двигателя</div>
+            <div class="step-caption">мощность / ток · сеть</div>
           </div>
-        </div>
-
-        <div class="field inline" id="powerField">
-          <div>
-            <label for="motorPower">Мощность двигателя, кВт</label>
-            <input type="number" id="motorPower" min="0" step="0.1" placeholder="например, 7.5">
-            <small>Используется для расчёта рабочего тока по 3-фазной формуле.</small>
+        </li>
+        <li class="step-item" data-step-label="2">
+          <div class="step-index">2</div>
+          <div class="step-body">
+            <div class="step-label">Автомат защиты</div>
+            <div class="step-caption">GM2ME / GM3P + аксессуары</div>
           </div>
-          <div>
-            <label for="supplyVoltage">Напряжение сети, В</label>
-            <select id="supplyVoltage">
-              <option value="400" selected>3×400 В</option>
-              <option value="380">3×380 В</option>
-              <option value="415">3×415 В</option>
-              <option value="230">3×230 В</option>
-            </select>
-            <small>Напряжение питания двигателя (AC-3).</small>
+        </li>
+        <li class="step-item" data-step-label="3">
+          <div class="step-index">3</div>
+          <div class="step-body">
+            <div class="step-label">Контактор</div>
+            <div class="step-caption">MC1E / MC1D + катушка</div>
           </div>
-        </div>
-
-        <div class="field inline" id="currentField" style="display:none;">
-          <div>
-            <label for="lineCurrent">Номинальный ток, А</label>
-            <input type="number" id="lineCurrent" min="0" step="0.1" placeholder="например, 15">
-            <small>Если известен ток двигателя/цепи — можно подбирать прямо по нему.</small>
+        </li>
+        <li class="step-item" data-step-label="4">
+          <div class="step-index">4</div>
+          <div class="step-body">
+            <div class="step-label">Тепловое реле</div>
+            <div class="step-caption">MRE / MRD</div>
           </div>
-        </div>
-
-        <div class="field" id="targetCurrentInfo">
-          <label>Расчётный ток для подбора</label>
-          <div class="muted">
-            <span id="targetCurrentValue">—</span>
-            <span class="pill">формула: I ≈ P / (√3·U·cos φ·η), cos φ≈0.8, η≈0.9</span>
+        </li>
+        <li class="step-item" data-step-label="5">
+          <div class="step-index">5</div>
+          <div class="step-body">
+            <div class="step-label">Итоговая спецификация</div>
+            <div class="step-caption">структурированный вывод</div>
           </div>
-        </div>
-      </section>
-
-      <!-- Параметры автомата -->
-      <section class="section" data-device="breaker">
-        <div class="section-title">
-          Шаг 3. Параметры автомата GM2/GM3
-        </div>
-
-        <div class="field">
-          <label for="breakerSeries">Серия / исполнение</label>
-          <select id="breakerSeries">
-            <option value="GM2P" selected>GM2P — поворотная рукоятка, комбинированный расцепитель</option>
-            <option value="GM2ME">GM2ME — кнопочное управление, комбинированный расцепитель</option>
-            <option value="GM2L">GM2L — поворотная рукоятка, только электромагнитный расцепитель</option>
-            <option value="GM3P">GM3P — поворотная рукоятка, комбинированный расцепитель (до 65 А)</option>
-          </select>
-          <small>Все серии соответствуют ГОСТ IEC 60947-1/2, степень защиты корпуса IP20.:contentReference[oaicite:0]{index=0}</small>
-        </div>
-
-        <div class="field">
-          <label>Тип комплекта</label>
-          <div class="radio-group">
-            <label class="chip chip-selected">
-              <input type="radio" name="breakerFrame" value="GM2" checked>
-              Компактный корпус GM2 (до 32 А)
-            </label>
-            <label class="chip">
-              <input type="radio" name="breakerFrame" value="GM3">
-              Промышленный корпус GM3 (13–65 А)
-            </label>
-          </div>
-          <small>По каталогу: GM2 — 45 мм ширина, GM3 — 55 мм.:contentReference[oaicite:1]{index=1}</small>
-        </div>
-      </section>
-
-      <!-- Параметры контактора -->
-      <section class="section" data-device="contactor" style="display:none;">
-        <div class="section-title">
-          Шаг 3. Параметры контактора
-        </div>
-
-        <div class="field">
-          <label for="contactorSeries">Серия контактора</label>
-          <select id="contactorSeries">
-            <option value="MC1D" selected>MC1D — промышленное применение, AC/DC катушки</option>
-            <option value="MC1E">MC1E — стандартные применения, AC катушки</option>
-          </select>
-          <small>MC1D — аналог LC1D, MC1E — компактные контакторы 9–95 А.</small>
-        </div>
-
-        <div class="field">
-          <label for="contactorCategory">Категория применения</label>
-          <select id="contactorCategory">
-            <option value="AC3" selected>AC-3 — пуск/останов асинхронных двигателей</option>
-            <option value="AC4">AC-4 — частый пуск/реверс</option>
-            <option value="AC1">AC-1 — активная нагрузка</option>
-          </select>
-          <small>Подбор ведём по параметрам AC-3 (двигатели). Значения AC-4/AC-1 — справочные.</small>
-        </div>
-
-        <div class="field inline">
-          <div>
-            <label for="coilFamily">Тип катушки управления</label>
-            <select id="coilFamily">
-              <option value="AC" selected>AC 50/60 Гц</option>
-              <option value="DC">DC</option>
-              <option value="ACDC">Универсальная AC/DC (MC1D 40–95)</option>
-            </select>
-            <small>Для MC1E доступны только AC-катушки; MC1D поддерживает AC, DC и AC/DC.</small>
-          </div>
-          <div>
-            <label for="coilVoltage">Номинальное напряжение катушки</label>
-            <select id="coilVoltage">
-              <!-- Заполняется скриптом в зависимости от серии и типа -->
-            </select>
-            <small>Код катушки (B7, E7, M7, BD, BNE и др.) будет добавлен к каталожному номеру.</small>
-          </div>
-        </div>
-
-        <div class="field">
-          <label>Добавить тепловое реле перегрузки</label>
-          <div class="radio-group">
-            <label class="chip chip-selected">
-              <input type="radio" name="addThermalToContactor" value="yes" checked>
-              Да, подобрать вместе с контактором
-            </label>
-            <label class="chip">
-              <input type="radio" name="addThermalToContactor" value="no">
-              Нет, только контактор
-            </label>
-          </div>
-          <small>MC1D — с тепловыми реле MRD; MC1E — с тепловыми реле MRE.</small>
-        </div>
-      </section>
-
-      <!-- Параметры теплового реле -->
-      <section class="section" data-device="thermal" style="display:none;">
-        <div class="section-title">
-          Шаг 3. Параметры теплового реле
-        </div>
-
-        <div class="field">
-          <label for="thermalSeries">Серия теплового реле</label>
-          <select id="thermalSeries">
-            <option value="MRD" selected>MRD — для контакторов MC1D</option>
-            <option value="MRE">MRE — для контакторов MC1E</option>
-          </select>
-          <small>MRD — ток 0,1–97 А; MRE — для MC1E 9–95 А.</small>
-        </div>
-
-        <div class="field">
-          <label for="thermalContactorRef">Тип контактора (для совместимости)</label>
-          <select id="thermalContactorRef">
-            <option value="auto" selected>Авто — по току/мощности</option>
-            <option value="MC1D09">MC1D 09…38 А</option>
-            <option value="MC1D40">MC1D 40…95 А</option>
-            <option value="MC1E09">MC1E 09…38 А</option>
-            <option value="MC1E40">MC1E 40…95 А</option>
-          </select>
-          <small>Для точной привязки можно указать диапазон контактора.</small>
-        </div>
-      </section>
-
-      <!-- Аксессуары автомата -->
-      <section class="section" data-device="breaker">
-        <div class="section-title">
-          Шаг 4. Аксессуары автомата GM2/GM3
-          <small>Доп. контакты, расцепители, шины, соединительные блоки и пр.</small>
-        </div>
-
-        <div class="field">
-          <label>Дополнительные контакты</label>
-          <div class="field inline">
-            <div>
-              <label for="breakerFrontAux">Фронтальный блок (GMAE)</label>
-              <select id="breakerFrontAux">
-                <option value="">Без доп. контактов спереди</option>
-                <option value="GMAE20">GMAE20 — 2 NO</option>
-                <option value="GMAE11">GMAE11 — 1 NO + 1 NC</option>
-              </select>
-              <small>Фронтальный блок GMAE используется для сигнализации состояния автомата (вкл./откл.).:contentReference[oaicite:7]{index=7}</small>
-            </div>
-            <div>
-              <label for="breakerSideAuxCount">Боковые блоки (GMAN)</label>
-              <select id="breakerSideAuxCount">
-                <option value="0">Без боковых блоков</option>
-                <option value="1">1 блок GMAN</option>
-                <option value="2">2 блока GMAN (макс.)</option>
-              </select>
-              <small>GMAN — боковой блок доп. контактов, максимум 2 модуля.:contentReference[oaicite:8]{index=8}</small>
-            </div>
-          </div>
-          <div class="field" id="breakerSideAuxTypes" style="display:none; margin-top:6px;">
-            <div class="inline">
-              <div>
-                <label for="breakerSideAux1">Боковой блок 1</label>
-                <select id="breakerSideAux1">
-                  <option value="GMAN20">GMAN20 — 2 NO</option>
-                  <option value="GMAN11">GMAN11 — 1 NO + 1 NC</option>
-                </select>
-              </div>
-              <div id="breakerSideAux2Wrapper">
-                <label for="breakerSideAux2">Боковой блок 2</label>
-                <select id="breakerSideAux2">
-                  <option value="GMAN20">GMAN20 — 2 NO</option>
-                  <option value="GMAN11">GMAN11 — 1 NO + 1 NC</option>
-                </select>
-              </div>
-            </div>
-            <small class="hint">Комбинации GMAE + GMAN должны быть в составе 1NO+1NC или 2NO на блок.:contentReference[oaicite:9]{index=9}</small>
-          </div>
-
-          <div class="field" style="margin-top:6px;">
-            <label for="breakerFaultContacts">Сигнализация аварии / КЗ</label>
-            <select id="breakerFaultContacts">
-              <option value="">Только стандартные контакты</option>
-              <option value="GMAM">GMAM — контакт сигнализации короткого замыкания</option>
-              <option value="GMAD11">GMAD11 — 1 NO + 1 NC, один из них — сигнал аварии</option>
-              <option value="GMAD20">GMAD20 — 2 NO, один — ранний замыкающий</option>
-            </select>
-            <small>GMAM/GMAD используют отдельную группу контактов для выдачи сигнала «автомат отключился по аварии».:contentReference[oaicite:10]{index=10}</small>
-          </div>
-        </div>
-
-        <div class="divider"></div>
-
-        <div class="field">
-          <label>Расцепители (дистанционное отключение / контроль напряжения)</label>
-          <div class="inline">
-            <div>
-              <label for="uvRelease">Расцепитель минимального напряжения GMAU</label>
-              <select id="uvRelease">
-                <option value="">Не устанавливать</option>
-                <option value="GMAU110">GMAU110 — 110–115 В</option>
-                <option value="GMAU220">GMAU220 — 220–240 В</option>
-                <option value="GMAU380">GMAU380 — 380–400 В</option>
-                <option value="GMAU415">GMAU415 — 415 В</option>
-              </select>
-              <small>Отключает автомат при падении напряжения ниже заданного уровня (защита от просадки/исчезновения питания).:contentReference[oaicite:11]{index=11}</small>
-            </div>
-            <div>
-              <label for="shuntTrip">Независимый расцепитель GMAS</label>
-              <select id="shuntTrip">
-                <option value="">Не устанавливать</option>
-                <option value="GMAS110">GMAS110 — 110–115 В</option>
-                <option value="GMAS220">GMAS220 — 220–240 В</option>
-                <option value="GMAS380">GMAS380 — 380–400 В</option>
-                <option value="GMAS415">GMAS415 — 415 В</option>
-              </select>
-              <small>Позволяет дистанционно отключать автомат по сигналу (например, от кнопки «Стоп» или цепи АВР).:contentReference[oaicite:12]{index=12}</small>
-            </div>
-          </div>
-          <div id="releaseConflict" class="alert warn" style="display:none;">
-            Нельзя одновременно использовать расцепитель минимального напряжения GMAU и независимый расцепитель GMAS для одного автомата (см. схему аксессуаров).:contentReference[oaicite:13]{index=13}
-          </div>
-        </div>
-
-        <div class="divider"></div>
-
-        <div class="field">
-          <label>Шины и соединительные блоки</label>
-          <div class="inline">
-            <div>
-              <label for="busbar">Трёхполюсная шина (GM2G)</label>
-              <select id="busbar">
-                <option value="">Без шинного комплекта</option>
-                <option value="GM2G245">GM2G245 — 2×3P, 45 мм</option>
-                <option value="GM2G345">GM2G345 — 3×3P, 45 мм</option>
-                <option value="GM2G445">GM2G445 — 4×3P, 45 мм</option>
-                <option value="GM2G545">GM2G545 — 5×3P, 45 мм</option>
-              </select>
-              <small>Комплект гребенчатых шин для питания нескольких автоматов GM2 от одного ввода.:contentReference[oaicite:14]{index=14}</small>
-            </div>
-            <div>
-              <label for="linkBlock">Соединительный блок GM2AF</label>
-              <select id="linkBlock">
-                <option value="">Не требуется</option>
-                <option value="GM2AF3">GM2AF3 — между GM2 и MC1D 9–32 A</option>
-                <option value="GM2AF318E">GM2AF318E — между GM2 и MC1E 9–18 A</option>
-                <option value="GM2AF338E">GM2AF338E — между GM2 и MC1E 25–38 A</option>
-              </select>
-              <small>Готовый блок для жёсткого соединения автомата защиты двигателя с контактором (пускатель без проводов).:contentReference[oaicite:15]{index=15}</small>
-            </div>
-          </div>
-        </div>
-
-        <div class="divider"></div>
-
-        <div class="field">
-          <label>Дополнительные элементы</label>
-          <div class="inline">
-            <label class="chip">
-              <input type="checkbox" id="breakerEnclosure">
-              Защитный корпус GM2MC02 (IP55)
-            </label>
-            <label class="chip">
-              <input type="checkbox" id="breakerLimiter">
-              Ограничитель тока КЗ GM1L3 (100 кА) сверху
-            </label>
-            <label class="chip">
-              <input type="checkbox" id="breakerBlackHandle">
-              Чёрная выносная рукоятка GM2APN01
-            </label>
-          </div>
-          <small class="hint">
-            GM2MC02 — корпус для выносного монтажа автомата; GM1L3 — ограничитель тока КЗ; GM2APN01 — выносная рукоятка для GM2P/GM2L при установке на дверцу шкафа.:contentReference[oaicite:16]{index=16}
-          </small>
-        </div>
-      </section>
-
-      <!-- Аксессуары контактора -->
-      <section class="section" data-device="contactor" style="display:none;">
-        <div class="section-title">
-          Шаг 4. Аксессуары контактора MC1D/MC1E
-          <small>Доп. контакты, задержки, ограничители перенапряжений, блокировки</small>
-        </div>
-
-        <div class="field">
-          <label>Дополнительные контакты</label>
-          <div class="field inline">
-            <div>
-              <label for="contactorFrontAux">Фронтальный блок (MADN)</label>
-              <select id="contactorFrontAux">
-                <option value="">Без дополнительного фронтального блока</option>
-                <option value="MADN11">MADN11 — 1 NO + 1 NC</option>
-                <option value="MADN20">MADN20 — 2 NO</option>
-                <option value="MADN02">MADN02 — 2 NC</option>
-                <option value="MADN22">MADN22 — 2 NO + 2 NC</option>
-              </select>
-              <small>Фронтальные блоки MADN увеличивают число вспомогательных контактов для цепей управления и сигнализации.:contentReference[oaicite:17]{index=17}</small>
-            </div>
-            <div>
-              <label for="contactorSideAux">Боковой блок (MAD8N)</label>
-              <select id="contactorSideAux">
-                <option value="">Без бокового блока</option>
-                <option value="MAD8N11">MAD8N11 — 1 NO + 1 NC</option>
-                <option value="MAD8N20">MAD8N20 — 2 NO</option>
-                <option value="MAD8N02">MAD8N02 — 2 NC</option>
-              </select>
-              <small>Боковой блок MAD8N ставится сбоку контактора и также добавляет вспомогательные контакты.:contentReference[oaicite:18]{index=18}</small>
-            </div>
-          </div>
-        </div>
-
-        <div class="divider"></div>
-
-        <div class="field">
-          <label>Контакты с выдержкой времени (фронтальный монтаж)</label>
-          <div class="inline">
-            <div>
-              <label for="timeOn">На срабатывание (MADT)</label>
-              <select id="timeOn">
-                <option value="">Без выдержки на включение</option>
-                <option value="MADT0">MADT0 — 0,1–3 с</option>
-                <option value="MADT2">MADT2 — 0,1–30 с</option>
-                <option value="MADT4">MADT4 — 10–180 с</option>
-              </select>
-            </div>
-            <div>
-              <label for="timeOff">На отпускание (MADR)</label>
-              <select id="timeOff">
-                <option value="">Без выдержки на отключение</option>
-                <option value="MADR0">MADR0 — 0,1–3 с</option>
-                <option value="MADR2">MADR2 — 0,1–30 с</option>
-                <option value="MADR4">MADR4 — 10–180 с</option>
-              </select>
-            </div>
-          </div>
-          <small class="hint">Блоки MADT/MADR дают задержку замыкания/размыкания контактов 1 NO + 1 NC по времени.:contentReference[oaicite:19]{index=19}</small>
-        </div>
-
-        <div class="divider"></div>
-
-        <div class="field">
-          <label>Ограничитель коммутационных перенапряжений катушки</label>
-          <div class="inline">
-            <div>
-              <label for="surgeType">Тип ограничителя</label>
-              <select id="surgeType">
-                <option value="">Не устанавливать</option>
-                <option value="VARISTOR">Варистор (серия MAD4V)</option>
-                <option value="RC">R-C цепочка (серия MAD4RC)</option>
-              </select>
-            </div>
-            <div>
-              <label for="surgeVoltage">Диапазон напряжения Uc</label>
-              <select id="surgeVoltage">
-                <option value="">—</option>
-                <option value="24-48">24–48 В</option>
-                <option value="50-127">50–127 В</option>
-                <option value="110-250">110–250 В</option>
-                <option value="380-440">380–440 В</option>
-              </select>
-            </div>
-          </div>
-          <small class="hint">MAD4V**/MAD4RC** подключаются к клеммам катушки и подавляют коммутационные перенапряжения. Для MC1D с универсальными катушками AC/DC модуль уже встроен.:contentReference[oaicite:20]{index=20}</small>
-        </div>
-
-        <div class="divider"></div>
-
-        <div class="field">
-          <label>Механическая блокировка (реверсивные пускатели)</label>
-          <div class="inline">
-            <label class="chip">
-              <input type="checkbox" id="mechLock38">
-              MA1M38 — блокировка для MC1D 09…38
-            </label>
-            <label class="chip">
-              <input type="checkbox" id="mechLock65">
-              MA1M65 — блокировка для MC1D 40…95
-            </label>
-          </div>
-          <small class="hint">Механическая блокировка исключает одновременное включение двух контакторов в реверсивных схемах.:contentReference[oaicite:21]{index=21}</small>
-        </div>
-      </section>
-
-      <!-- Аксессуары теплового реле (минимально, описания) -->
-      <section class="section" data-device="thermal" style="display:none;">
-        <div class="section-title">
-          Шаг 4. Дополнительные опции теплового реле
-        </div>
-        <div class="field">
-          <label>Режим подключения</label>
-          <div class="radio-group">
-            <label class="chip chip-selected">
-              <input type="radio" name="thermalMount" value="direct" checked>
-              Непосредственно на контактор
-            </label>
-            <label class="chip">
-              <input type="radio" name="thermalMount" value="independent">
-              Независимая установка (через клеммный блок)
-            </label>
-          </div>
-          <small class="hint">
-            Для MRE доступны клеммные блоки MRETB25/36/93 для независимой установки реле на DIN-рейку.:contentReference[oaicite:22]{index=22}
-          </small>
-        </div>
-      </section>
-
+        </li>
+      </ol>
+      <div class="steps-footer">
+        <div>Выбор блокируется, пока <strong>верхний</strong> шаг не заполнен.</div>
+      </div>
     </aside>
 
-    <!-- Правая панель — результат и спецификация -->
-    <section class="panel" id="rightPanel">
-      <h2 class="panel-title">
-        Конфигурация и спецификация
-        <span class="sub">Базовое устройство + аксессуары в одной спецификации</span>
-      </h2>
-
-      <div id="baseDeviceCard" class="empty">
-        <h2>Начните с выбора параметров слева</h2>
-        <div class="subtitle">Здесь появится выбранный автомат, контактор или тепловое реле с кратким описанием.</div>
-        <div class="meta">
-          <span>Номинальный ток: —</span>
-          <span>Номинальная мощность: —</span>
-          <span>Артикул: —</span>
+    <section class="content-panel">
+      <div class="content-header">
+        <div class="content-title-block">
+          <h1 id="content-title">1. Исходные данные двигателя</h1>
+          <p id="content-subtitle">
+            Введите мощность или номинальный ток двигателя, конфигуратор подберёт аппараты SystemePact-M.
+          </p>
+        </div>
+        <div>
+          <div class="badge">
+            <span class="badge-dot"></span>
+            <span id="badge-text">Шаг 1 из 5 · ввод данных</span>
+          </div>
+          <div class="steps-nav-main">
+            <span>Режим конфигурации: <b class="accent">защита двигателя</b></span>
+            <span>Логика: сверху вниз → <b>готовое решение</b></span>
+          </div>
         </div>
       </div>
 
-      <div id="bomSummary">
-        <div>Позиции спецификации: <strong><span id="bomCount">0</span></strong></div>
-        <div class="badge-device">
-          Текущий тип: <span id="currentDeviceTypeLabel">Автомат защиты двигателя</span>
+      <!-- ШАГ 1 -->
+      <div class="step-view is-active" data-step="1">
+        <div class="cards-grid">
+          <div class="card">
+            <div class="card-header">
+              <div>
+                <div class="card-title">Данные двигателя</div>
+                <div class="card-subtitle">Асинхронный 3~ двигатель, категория AC-3</div>
+              </div>
+              <div class="card-tag card-tag--accent">Ввод обязателен</div>
+            </div>
+
+            <div class="field-group">
+              <label class="field-label">
+                <span>Напряжение сети, В</span>
+                <small>по таблицам каталога используется 400/415 В</small>
+              </label>
+              <select id="supplyVoltage">
+                <option value="">Выберите напряжение...</option>
+                <option value="400" selected>3~ 380/400 В, 50 Гц (AC-3)</option>
+              </select>
+            </div>
+
+            <div class="field-group">
+              <div class="field-label">
+                <span>Режим выбора двигателя</span>
+                <small>можно по мощности или по току</small>
+              </div>
+              <div class="radio-row">
+                <label class="chip">
+                  <input type="radio" name="motorMode" value="power" checked>
+                  <span>По мощности, кВт</span>
+                </label>
+                <label class="chip">
+                  <input type="radio" name="motorMode" value="current">
+                  <span>По номинальному току, А</span>
+                </label>
+              </div>
+            </div>
+
+            <div class="field-group" id="powerInputGroup">
+              <label class="field-label">
+                <span>Номинальная мощность двигателя, кВт</span>
+                <small>по валу при 400 В</small>
+              </label>
+              <input type="number" id="motorPower" min="0" step="0.1" placeholder="Например, 7.5" />
+            </div>
+
+            <div class="field-group hidden" id="currentInputGroup">
+              <label class="field-label">
+                <span>Номинальный ток двигателя, А</span>
+                <small>по табличке двигателя</small>
+              </label>
+              <input type="number" id="motorCurrent" min="0" step="0.1" placeholder="Например, 15.2" />
+            </div>
+
+            <div class="field-group">
+              <button type="button" class="btn-secondary" id="estimateCurrentBtn">
+                Оценить ток по мощности
+              </button>
+              <div class="hint" id="currentEstimateHint">
+                Если известна только мощность, можно оценить ток: I≈P/(√3·U·cosφ·η) при cosφ≈0,8 и η≈0,9.
+              </div>
+            </div>
+          </div>
+
+          <div class="card">
+            <div class="card-header">
+              <div>
+                <div class="card-title">Пояснение к шагу</div>
+                <div class="card-subtitle">как будут подбираться аппараты</div>
+              </div>
+              <div class="card-tag">Только SystemePact-M</div>
+            </div>
+            <div class="hint">
+              • Конфигуратор рассчитан на <strong>трёхфазный асинхронный двигатель категории AC-3</strong> по IEC 60947-4-1.<br/>
+              • Подбор автомата выполняется по диапазону уставок GM2ME/GM3P и соответствующей мощности двигателя при 400/415 В.<br/>
+              • Контактор MC1E/MC1D выбирается по номинальному току и мощности двигателя при AC-3 400 В.<br/>
+              • Тепловое реле MRE/MRD подбирается по диапазону тока уставки и совместимости с выбранным контактором.<br/><br/>
+              Чтобы идти дальше, достаточно задать <strong>напряжение сети</strong> и
+              <strong>мощность</strong> или <strong>ток</strong> двигателя.
+            </div>
+          </div>
         </div>
       </div>
 
-      <div id="bomContainer">
-        <div class="bom-empty" id="bomEmpty">Пока ничего не выбрано. Укажите параметры слева, чтобы конфигуратор подобрал изделие.</div>
-        <table id="bomTable" style="display:none;">
-          <thead>
-          <tr>
-            <th style="width: 120px;">Каталожный номер</th>
-            <th>Наименование</th>
-            <th style="width: 32%;">Описание / назначение</th>
-            <th style="width: 60px;">Кол-во</th>
-          </tr>
-          </thead>
-          <tbody id="bomTbody"></tbody>
-        </table>
+      <!-- ШАГ 2 -->
+      <div class="step-view" data-step="2">
+        <div class="cards-grid">
+          <div class="card">
+            <div class="card-header">
+              <div>
+                <div class="card-title">Автомат защиты двигателя</div>
+                <div class="card-subtitle">GM2ME (0,63–32 А) или GM3P (9–65 А)</div>
+              </div>
+              <div class="card-tag card-tag--accent">Шаг 2 · базовый аппарат</div>
+            </div>
+
+            <div class="table-wrap">
+              <table>
+                <thead>
+                <tr>
+                  <th></th>
+                  <th>Серия</th>
+                  <th>Тип</th>
+                  <th>Диап. уставок, А</th>
+                  <th>In, А</th>
+                  <th>Pдв, кВт (400 В)</th>
+                  <th>Совпадение</th>
+                </tr>
+                </thead>
+                <tbody id="breakerTableBody"></tbody>
+              </table>
+              <div class="table-small-note">
+                Диапазоны уставок и мощности взяты из таблиц GM2ME/GM3P каталога SystemePact-M для двигателей при 400/415 В, категория AC-3.
+              </div>
+            </div>
+            <div class="hint" id="breakerHint">
+              Выберите один автомат защиты двигателя. Рекомендуемая позиция подсвечена зелёным.
+            </div>
+          </div>
+
+          <div class="card">
+            <div class="card-header">
+              <div>
+                <div class="card-title">Аксессуары к автомату</div>
+                <div class="card-subtitle">только реальные позиции каталога</div>
+              </div>
+              <div class="card-tag">Опционально</div>
+            </div>
+
+            <div class="field-group">
+              <label class="field-label">
+                <span>Дополнительные контакты</span>
+                <small>GMAE (фронт) / GMAN (бок)</small>
+              </label>
+              <div class="radio-row">
+                <label class="chip">
+                  <input type="checkbox" id="accGMAE11">
+                  <span>GMAE11 · 1НО+1НЗ (фронт)</span>
+                </label>
+                <label class="chip">
+                  <input type="checkbox" id="accGMAE20">
+                  <span>GMAE20 · 2НО (фронт)</span>
+                </label>
+                <label class="chip">
+                  <input type="checkbox" id="accGMAE02">
+                  <span>GMAE02 · 2НЗ (фронт)</span>
+                </label>
+              </div>
+              <div class="radio-row">
+                <label class="chip">
+                  <input type="checkbox" id="accGMAN11">
+                  <span>GMAN11 · 1НО+1НЗ (бок)</span>
+                </label>
+                <label class="chip">
+                  <input type="checkbox" id="accGMAN20">
+                  <span>GMAN20 · 2НО (бок)</span>
+                </label>
+              </div>
+              <div class="hint">
+                Дополнительные контакты используются для цепей сигнализации, блокировок и самоподхвата.
+              </div>
+            </div>
+
+            <div class="field-group">
+              <label class="field-label">
+                <span>Расцепители и сигнальные контакты</span>
+                <small>по необходимости схемы</small>
+              </label>
+              <div class="field-group">
+                <label class="field-label">
+                  <span>Расцепитель минимального напряжения GMAU</span>
+                  <small>отключение при падении U</small>
+                </label>
+                <select id="accGMAU">
+                  <option value="">Не выбирать</option>
+                  <option value="GMAU16B7">GMAU16B7 · 110–127 В AC</option>
+                  <option value="GMAU16E7">GMAU16E7 · 220–240 В AC</option>
+                </select>
+              </div>
+              <div class="field-group">
+                <label class="field-label">
+                  <span>Независимый расцепитель GMAS</span>
+                  <small>дистанционное отключение</small>
+                </label>
+                <select id="accGMAS">
+                  <option value="">Не выбирать</option>
+                  <option value="GMAS16B7">GMAS16B7 · 110–127 В AC</option>
+                  <option value="GMAS16E7">GMAS16E7 · 220–240 В AC</option>
+                </select>
+              </div>
+              <div class="radio-row">
+                <label class="chip">
+                  <input type="checkbox" id="accGMAD0101">
+                  <span>GMAD0101 · 1НО+сигнал отключения</span>
+                </label>
+                <label class="chip">
+                  <input type="checkbox" id="accGMAD0110">
+                  <span>GMAD0110 · 1НЗ+сигнал отключения</span>
+                </label>
+              </div>
+              <div class="radio-row">
+                <label class="chip">
+                  <input type="checkbox" id="accGMAD1001">
+                  <span>GMAD1001 · 1НО+1 сигнал КЗ</span>
+                </label>
+                <label class="chip">
+                  <input type="checkbox" id="accGMAD1010">
+                  <span>GMAD1010 · 1НЗ+1 сигнал КЗ</span>
+                </label>
+              </div>
+              <div class="radio-row">
+                <label class="chip">
+                  <input type="checkbox" id="accGMAM11">
+                  <span>GMAM11 · контакт сигнализации КЗ</span>
+                </label>
+              </div>
+            </div>
+
+            <div class="field-group">
+              <label class="field-label">
+                <span>Шины и соединительные блоки</span>
+                <small>для комплектного решения</small>
+              </label>
+              <div class="field-group">
+                <label class="field-label">
+                  <span>Комплект трёхполюсных шин GM2G</span>
+                  <small>для нескольких автоматов</small>
+                </label>
+                <select id="accGM2G">
+                  <option value="">Не выбирать</option>
+                  <option value="GM2G245">GM2G245 · 2×45 мм²</option>
+                  <option value="GM2G345">GM2G345 · 3×45 мм²</option>
+                  <option value="GM2G545">GM2G545 · 5×45 мм²</option>
+                </select>
+              </div>
+              <div class="field-group">
+                <label class="field-label">
+                  <span>Соединительный блок между автоматом и контактором</span>
+                  <small>GM2AF для MC1D/MC1E</small>
+                </label>
+                <select id="accGM2AF">
+                  <option value="">Не выбирать</option>
+                  <option value="GM2AF318E">GM2AF318E · GM2ME + MC1D 9–18</option>
+                  <option value="GM2AF338E">GM2AF338E · GM2ME + MC1D 25–38</option>
+                  <option value="GM2AF3">GM2AF3 · GM2ME + MC1E 9–38</option>
+                </select>
+              </div>
+            </div>
+
+            <div class="field-group">
+              <label class="field-label"><span>Прочие аксессуары</span></label>
+              <div class="radio-row">
+                <label class="chip">
+                  <input type="checkbox" id="accGM2MC02">
+                  <span>GM2MC02 · защитный корпус</span>
+                </label>
+                <label class="chip">
+                  <input type="checkbox" id="accGM1L3">
+                  <span>GM1L3 · ограничитель TOP-KZ</span>
+                </label>
+                <label class="chip">
+                  <input type="checkbox" id="accGM2APN01">
+                  <span>GM2APN01 · чёрная выносная ручка</span>
+                </label>
+              </div>
+            </div>
+          </div>
+        </div>
       </div>
 
-      <div class="actions-row">
-        <button class="btn secondary" id="copySpecBtn" disabled>
-          <span class="icon">📋</span>
-          <span>Скопировать спецификацию</span>
-        </button>
-        <button class="btn secondary" id="exportCsvBtn" disabled>
-          <span class="icon">⬇️</span>
-          <span>Выгрузить CSV (Excel)</span>
-        </button>
-        <button class="btn" id="fakeCartBtn" disabled>
-          <span class="icon">🛒</span>
-          <span>Добавить в корзину (заглушка)</span>
-        </button>
+      <!-- ШАГ 3 -->
+      <div class="step-view" data-step="3">
+        <div class="cards-grid">
+          <div class="card">
+            <div class="card-header">
+              <div>
+                <div class="card-title">Контактор для управления двигателем</div>
+                <div class="card-subtitle">MC1E (стандарт) или MC1D (промышленный)</div>
+              </div>
+              <div class="card-tag card-tag--accent">Шаг 3 · коммутационный аппарат</div>
+            </div>
+
+            <div class="field-group">
+              <label class="field-label">
+                <span>Серия контакторов</span>
+                <small>оба варианта есть в каталоге</small>
+              </label>
+              <div class="radio-row">
+                <label class="chip">
+                  <input type="radio" name="contactorSeries" value="MC1E" checked>
+                  <span>MC1E · компактный контактор</span>
+                </label>
+                <label class="chip">
+                  <input type="radio" name="contactorSeries" value="MC1D">
+                  <span>MC1D · промышленный контактор</span>
+                </label>
+              </div>
+            </div>
+
+            <div class="table-wrap">
+              <table>
+                <thead>
+                <tr>
+                  <th></th>
+                  <th>Серия</th>
+                  <th>Тип</th>
+                  <th>Ie AC-3 400 В, А</th>
+                  <th>Pдв, кВт (400 В)</th>
+                  <th>Встроенные контакты</th>
+                  <th>Совпадение</th>
+                </tr>
+                </thead>
+                <tbody id="contactorTableBody"></tbody>
+              </table>
+              <div class="table-small-note">
+                Данные по токам и мощностям соответствуют таблицам контакторов MC1E/MC1D серии SystemePact-M для категории AC-3 при 400 В.
+              </div>
+            </div>
+
+            <div class="field-group">
+              <label class="field-label">
+                <span>Напряжение и код катушки управления</span>
+                <small>по структуре каталожного номера</small>
+              </label>
+              <select id="coilVoltageSelect">
+                <option value="">Выберите напряжение катушки...</option>
+                <option value="B7">24 В AC (код B7)</option>
+                <option value="C7">36 В AC (код C7, только MC1E)</option>
+                <option value="E7">48 В AC (код E7)</option>
+                <option value="F7">110 В AC (код F7)</option>
+                <option value="M7">220/230 В AC (код M7)</option>
+                <option value="Q7">380/400 В AC (код Q7)</option>
+                <option value="BD">24 В DC (код BD, только MC1D)</option>
+                <option value="ED">48 В DC (код ED, только MC1D)</option>
+                <option value="FD">110 В DC (код FD, только MC1D)</option>
+                <option value="MD">220 В DC (код MD, только MC1D)</option>
+                <option value="BNE">24–60 В AC/DC (код BNE, только MC1D)</option>
+                <option value="KUE">100–250 В AC/DC (код KUE, только MC1D)</option>
+              </select>
+              <div class="hint" id="coilHint">
+                Полный код контактора формируется как <strong>MC1E09M7</strong>, <strong>MC1D25BNE</strong> и т.п.
+              </div>
+            </div>
+          </div>
+
+          <div class="card">
+            <div class="card-header">
+              <div>
+                <div class="card-title">Аксессуары контактора</div>
+                <div class="card-subtitle">доп. контакты, выдержка, защита катушки</div>
+              </div>
+              <div class="card-tag">Опционально</div>
+            </div>
+
+            <div class="field-group">
+              <label class="field-label">
+                <span>Дополнительные контакты (фронт / бок)</span>
+                <small>для цепей управления и сигнализации</small>
+              </label>
+              <div class="radio-row">
+                <label class="chip">
+                  <input type="checkbox" id="accFrontMC">
+                  <span>MAFN11 / MADN11 · 1НО+1НЗ (фронт)</span>
+                </label>
+                <label class="chip">
+                  <input type="checkbox" id="accFrontMC20">
+                  <span>MAFN20 / MADN20 · 2НО (фронт)</span>
+                </label>
+                <label class="chip">
+                  <input type="checkbox" id="accFrontMC02">
+                  <span>MAFN02 / MADN02 · 2НЗ (фронт)</span>
+                </label>
+              </div>
+              <div class="radio-row">
+                <label class="chip">
+                  <input type="checkbox" id="accSideMC">
+                  <span>MASN11 / MAD8N11 · 1НО+1НЗ (бок)</span>
+                </label>
+                <label class="chip">
+                  <input type="checkbox" id="accSideMC20">
+                  <span>MAD8N20 · 2НО (бок, MC1D)</span>
+                </label>
+                <label class="chip">
+                  <input type="checkbox" id="accSideMC02">
+                  <span>MAD8N02 · 2НЗ (бок, MC1D)</span>
+                </label>
+              </div>
+            </div>
+
+            <div class="field-group">
+              <label class="field-label">
+                <span>Выдержка времени доп. контактов</span>
+                <small>MADT / MADR / MTD4**</small>
+              </label>
+              <select id="accTimeBlock">
+                <option value="">Не выбирать</option>
+                <option value="MADT0">MADT0 · 0,1–3 c, на срабатывание (MC1D)</option>
+                <option value="MADT2">MADT2 · 0,1–30 с, на срабатывание (MC1D)</option>
+                <option value="MADT4">MADT4 · 10–180 с, на срабатывание (MC1D)</option>
+                <option value="MADR0">MADR0 · 0,1–3 c, на отпускание (MC1D)</option>
+                <option value="MADR2">MADR2 · 0,1–30 с, на отпускание (MC1D)</option>
+                <option value="MADR4">MADR4 · 10–180 с, на отпускание (MC1D)</option>
+                <option value="MTD420">MTD420 · 0,1–3 c, на срабатывание (MC1E)</option>
+                <option value="MTD422">MTD422 · 0,1–30 c, на срабатывание (MC1E)</option>
+                <option value="MTD424">MTD424 · 10–180 c, на срабатывание (MC1E)</option>
+              </select>
+              <div class="hint">
+                Используется для задержки включения или отключения цепей управления (например, в схемах «звезда-треугольник»).
+              </div>
+            </div>
+
+            <div class="field-group">
+              <label class="field-label">
+                <span>Ограничители коммутационных перенапряжений</span>
+                <small>MAD4V*/MAD4RC* · MA181RC*</small>
+              </label>
+              <select id="accSurgeBlock">
+                <option value="">Не выбирать</option>
+                <option value="MAD4VE">MAD4VE · варистор 24–48 В AC/DC (MC1D)</option>
+                <option value="MAD4VG">MAD4VG · варистор 50–127 В AC/DC (MC1D)</option>
+                <option value="MAD4VU">MAD4VU · варистор 110–250 В AC/DC (MC1D)</option>
+                <option value="MAD4VN">MAD4VN · варистор 380–440 В AC/DC (MC1D)</option>
+                <option value="MAD4RCE">MAD4RCE · RC-цепь 24–48 В AC (MC1D)</option>
+                <option value="MAD4RCG">MAD4RCG · RC-цепь 50–127 В AC (MC1D)</option>
+                <option value="MAD4RCU">MAD4RCU · RC-цепь 110–250 В AC (MC1D)</option>
+                <option value="MAD4RCN">MAD4RCN · RC-цепь 380–440 В AC (MC1D)</option>
+                <option value="MA181RC">MA181RC · RC-ограничитель 24–48 В (MC1E)</option>
+                <option value="MA182RC">MA182RC · RC-ограничитель 110–240 В (MC1E)</option>
+                <option value="MA184RC">MA184RC · RC-ограничитель 380–440 В (MC1E)</option>
+              </select>
+              <div class="hint">
+                Модули устанавливаются на катушку и уменьшают коммутационные перенапряжения, защищая изоляцию и электронику в цепи управления.
+              </div>
+            </div>
+
+            <div class="field-group">
+              <label class="field-label">
+                <span>Мех. блокировка и защита катушки (MC1D)</span>
+              </label>
+              <div class="radio-row">
+                <label class="chip">
+                  <input type="checkbox" id="accMA1M">
+                  <span>MA1M38 / MA1M65 · мех. блокировка двух контакторов</span>
+                </label>
+                <label class="chip">
+                  <input type="checkbox" id="accMA6DK10">
+                  <span>MA6DK10** · модуль защиты катушки (AC/DC)</span>
+                </label>
+              </div>
+              <div class="hint">
+                Механическая блокировка исключает одновременное включение двух встречных контакторов, модуль MA6DK10 ограничивает перенапряжения на катушке.
+              </div>
+            </div>
+          </div>
+        </div>
       </div>
-      <div class="small-note">
-        Интеграция с реальным API корзины systeme.ru / dek.ru реализуется на уровне обработчиков кнопок выгрузки и добавления.
+
+      <!-- ШАГ 4 -->
+      <div class="step-view" data-step="4">
+        <div class="cards-grid-full">
+          <div class="card">
+            <div class="card-header">
+              <div>
+                <div class="card-title">Тепловое реле перегрузки</div>
+                <div class="card-subtitle">MRE (для MC1E) или MRD (для MC1D)</div>
+              </div>
+              <div class="card-tag card-tag--accent">Шаг 4 · защита от перегрузки</div>
+            </div>
+
+            <div class="field-group">
+              <label class="field-label">
+                <span>Серия теплового реле</span>
+                <small>выбор зависит от контактора</small>
+              </label>
+              <div class="radio-row">
+                <label class="chip">
+                  <input type="radio" name="relaySeries" value="auto" checked>
+                  <span>Автовыбор по серии контактора</span>
+                </label>
+                <label class="chip">
+                  <input type="radio" name="relaySeries" value="MRE">
+                  <span>MRE · для MC1E</span>
+                </label>
+                <label class="chip">
+                  <input type="radio" name="relaySeries" value="MRD">
+                  <span>MRD · для MC1D</span>
+                </label>
+              </div>
+            </div>
+
+            <div class="table-wrap">
+              <table>
+                <thead>
+                <tr>
+                  <th></th>
+                  <th>Серия</th>
+                  <th>Тип</th>
+                  <th>Диап. уставок, А</th>
+                  <th>Совм. контакторы</th>
+                  <th>Комментарий</th>
+                </tr>
+                </thead>
+                <tbody id="relayTableBody"></tbody>
+              </table>
+              <div class="table-small-note">
+                Диапазоны и совместимость полностью соответствуют таблицам MRE и MRD в каталоге SystemePact-M.
+              </div>
+            </div>
+
+            <div class="hint" id="relayHint">
+              Выберите тепловое реле так, чтобы его диапазон уставок перекрывал номинальный ток двигателя.
+            </div>
+          </div>
+        </div>
+      </div>
+
+      <!-- ШАГ 5 -->
+      <div class="step-view" data-step="5">
+        <div class="cards-grid-full">
+          <div class="card">
+            <div class="card-header">
+              <div>
+                <div class="card-title">Итоговая спецификация</div>
+                <div class="card-subtitle">готовый набор аппаратов и аксессуаров</div>
+              </div>
+              <div class="card-tag card-tag--accent">Шаг 5 · результат</div>
+            </div>
+
+            <div class="summary-grid">
+              <div>
+                <div class="summary-title">Краткая спецификация (по позициям)</div>
+                <div class="summary-box" id="summaryText">
+                  Спецификация будет сформирована после выбора всех шагов.
+                </div>
+              </div>
+              <div>
+                <div class="summary-title">Структурированное представление</div>
+                <div class="table-wrap">
+                  <table class="summary-table">
+                    <tbody id="summaryTableBody"></tbody>
+                  </table>
+                </div>
+              </div>
+            </div>
+
+            <div class="content-footer" style="margin-top:10px;">
+              <div class="hint">
+                При необходимости можно изменить любой из предыдущих шагов — спецификация пересчитается автоматически.
+              </div>
+              <div class="nav-buttons">
+                <button type="button" class="btn-secondary" id="resetConfigBtn">
+                  Сбросить конфигурацию
+                </button>
+                <button type="button" class="btn-primary" id="copySummaryBtn">
+                  Копировать спецификацию
+                </button>
+              </div>
+            </div>
+          </div>
+        </div>
+      </div>
+
+      <div class="content-footer">
+        <div class="hint">
+          Шаги выполняются последовательно: сначала двигатель → автомат → контактор → тепловое реле → итог.
+        </div>
+        <div class="nav-buttons">
+          <button type="button" class="btn-secondary" id="prevStepBtn" disabled>
+            ← Назад
+          </button>
+          <button type="button" class="btn-primary" id="nextStepBtn" disabled>
+            Далее →
+          </button>
+        </div>
       </div>
     </section>
   </main>
 </div>
 
 <script>
-  // --- ДАННЫЕ ПО КАТАЛОГУ ----------------------------------------------------
+  // ---------- ДАННЫЕ ИЗ КАТАЛОГА (SysPact-M) ----------
 
-  // Диапазоны автоматов защиты двигателя GM2 (GM2P/GM2ME/GM2L) и GM3P.
-  // Основано на таблицах "Данные для заказа" из каталога SystemePact M.
-  const breakerRangesGM2 = [
-    { id: 1, irMin: 0.1,  irMax: 0.16, in: 0.16, p400: null, codes: { GM2P: "GM2P01", GM2ME: "GM2ME01", GM2L: null } },
-    { id: 2, irMin: 0.16, irMax: 0.25, in: 0.25, p400: 0.06, codes: { GM2P: "GM2P02", GM2ME: "GM2ME02", GM2L: null } },
-    { id: 3, irMin: 0.25, irMax: 0.4,  in: 0.4,  p400: 0.09, codes: { GM2P: "GM2P03", GM2ME: "GM2ME03", GM2L: "GM2L03" } },
-    { id: 4, irMin: 0.4,  irMax: 0.63, in: 0.63, p400: 0.12, codes: { GM2P: "GM2P04", GM2ME: "GM2ME04", GM2L: "GM2L04" } },
-    { id: 5, irMin: 0.63, irMax: 1,    in: 1,    p400: 0.25, codes: { GM2P: "GM2P05", GM2ME: "GM2ME05", GM2L: "GM2L05" } },
-    { id: 6, irMin: 1,    irMax: 1.6,  in: 1.6,  p400: 0.37, codes: { GM2P: "GM2P06", GM2ME: "GM2ME06", GM2L: "GM2L06" } },
-    { id: 7, irMin: 1.6,  irMax: 2.5,  in: 2.5,  p400: 0.75, codes: { GM2P: "GM2P07", GM2ME: "GM2ME07", GM2L: "GM2L07" } },
-    { id: 8, irMin: 2.5,  irMax: 4,    in: 4,    p400: 1.5,  codes: { GM2P: "GM2P08", GM2ME: "GM2ME08", GM2L: "GM2L08" } },
-    { id: 9, irMin: 4,    irMax: 6.3,  in: 6.3,  p400: 2.2,  codes: { GM2P: "GM2P10", GM2ME: "GM2ME10", GM2L: "GM2L10" } },
-    { id:10, irMin: 6,    irMax: 10,   in: 10,   p400: 4,    codes: { GM2P: "GM2P14", GM2ME: "GM2ME14", GM2L: "GM2L14" } },
-    { id:11, irMin: 9,    irMax: 14,   in: 14,   p400: 5.5,  codes: { GM2P: "GM2P16", GM2ME: "GM2ME16", GM2L: "GM2L16" } },
-    { id:12, irMin:13,    irMax: 18,   in: 18,   p400: 7.5,  codes: { GM2P: "GM2P20", GM2ME: "GM2ME20", GM2L: "GM2L20" } },
-    { id:13, irMin:17,    irMax: 23,   in: 23,   p400: 9,    codes: { GM2P: "GM2P21", GM2ME: "GM2ME21", GM2L: "GM2L21" } },
-    { id:14, irMin:20,    irMax: 25,   in: 25,   p400:11,    codes: { GM2P: "GM2P22", GM2ME: "GM2ME22", GM2L: "GM2L22" } },
-    { id:15, irMin:24,    irMax: 32,   in: 32,   p400:15,    codes: { GM2P: "GM2P32", GM2ME: "GM2ME32", GM2L: "GM2L32" } }
+  const gm2meBreakers = [
+    { series: 'GM2ME', frame: 'GM2P05', code: 'GM2ME05', irMin: 0.63, irMax: 1, In: 1, p400: 0.25 },
+    { series: 'GM2ME', frame: 'GM2P06', code: 'GM2ME06', irMin: 1, irMax: 1.6, In: 1.6, p400: 0.37 },
+    { series: 'GM2ME', frame: 'GM2P07', code: 'GM2ME07', irMin: 1.6, irMax: 2.5, In: 2.5, p400: 0.75 },
+    { series: 'GM2ME', frame: 'GM2P08', code: 'GM2ME08', irMin: 2.5, irMax: 4, In: 4, p400: 1.5 },
+    { series: 'GM2ME', frame: 'GM2P10', code: 'GM2ME10', irMin: 4, irMax: 6.3, In: 6.3, p400: 2.2 },
+    { series: 'GM2ME', frame: 'GM2P14', code: 'GM2ME14', irMin: 6, irMax: 10, In: 10, p400: 4 },
+    { series: 'GM2ME', frame: 'GM2P16', code: 'GM2ME16', irMin: 9, irMax: 14, In: 14, p400: 5.5 },
+    { series: 'GM2ME', frame: 'GM2P20', code: 'GM2ME20', irMin: 13, irMax: 18, In: 18, p400: 7.5 },
+    { series: 'GM2ME', frame: 'GM2P21', code: 'GM2ME21', irMin: 17, irMax: 23, In: 23, p400: 9 },
+    { series: 'GM2ME', frame: 'GM2P22', code: 'GM2ME22', irMin: 20, irMax: 25, In: 25, p400: 11 },
+    { series: 'GM2ME', frame: 'GM2P32', code: 'GM2ME32', irMin: 24, irMax: 32, In: 32, p400: 15 }
   ];
 
-  const breakerRangesGM3 = [
-    { id: 101, irMin: 9,  irMax: 13, in: 13, p400: 5.5,  code: "GM3P13" },
-    { id: 102, irMin:12,  irMax: 18, in: 18, p400: 7.5,  code: "GM3P18" },
-    { id: 103, irMin:17,  irMax: 25, in: 25, p400: 11,   code: "GM3P25" },
-    { id: 104, irMin:23,  irMax: 32, in: 32, p400: 15,   code: "GM3P32" },
-    { id: 105, irMin:30,  irMax: 40, in: 40, p400: 18.5, code: "GM3P40" },
-    { id: 106, irMin:37,  irMax: 50, in: 50, p400: 22,   code: "GM3P50" },
-    { id: 107, irMin:48,  irMax: 65, in: 65, p400: 30,   code: "GM3P65" }
+  const gm3pBreakers = [
+    { series: 'GM3P', code: 'GM3P13', irMin: 9, irMax: 13, In: 13, p400: 5.5 },
+    { series: 'GM3P', code: 'GM3P18', irMin: 12, irMax: 18, In: 18, p400: 7.5 },
+    { series: 'GM3P', code: 'GM3P25', irMin: 17, irMax: 25, In: 25, p400: 11 },
+    { series: 'GM3P', code: 'GM3P32', irMin: 23, irMax: 32, In: 32, p400: 15 },
+    { series: 'GM3P', code: 'GM3P40', irMin: 30, irMax: 40, In: 40, p400: 18.5 },
+    { series: 'GM3P', code: 'GM3P50', irMin: 37, irMax: 50, In: 50, p400: 22 },
+    { series: 'GM3P', code: 'GM3P65', irMin: 48, irMax: 65, In: 65, p400: 30 }
   ];
 
-  // Контакторы MC1D и MC1E (основные номиналы по AC-3, 400 В).
-  const contactors = [
-    // MC1D
-    { series: "MC1D", base: "MC1D09", in: 9,  p220: 2.2,  p400: 4 },
-    { series: "MC1D", base: "MC1D12", in: 12, p220: 3,    p400: 5.5 },
-    { series: "MC1D", base: "MC1D18", in: 18, p220: 4,    p400: 7.5 },
-    { series: "MC1D", base: "MC1D25", in: 25, p220: 5.5,  p400: 11 },
-    { series: "MC1D", base: "MC1D32", in: 32, p220: 7.5,  p400: 15 },
-    { series: "MC1D", base: "MC1D38", in: 38, p220: 9,    p400: 18.5 },
-    { series: "MC1D", base: "MC1D40", in: 40, p220: 11,   p400: 18.5 },
-    { series: "MC1D", base: "MC1D50", in: 50, p220: 15,   p400: 22 },
-    { series: "MC1D", base: "MC1D65", in: 65, p220: 18.5, p400: 30 },
-    { series: "MC1D", base: "MC1D80", in: 80, p220: 22,   p400: 37 },
-    { series: "MC1D", base: "MC1D95", in: 95, p220: 25,   p400: 45 },
-    // MC1E
-    { series: "MC1E", base: "MC1E09", in: 9,  p220: 2.2,  p400: 4 },
-    { series: "MC1E", base: "MC1E12", in: 12, p220: 3,    p400: 5.5 },
-    { series: "MC1E", base: "MC1E18", in: 18, p220: 4,    p400: 7.5 },
-    { series: "MC1E", base: "MC1E25", in: 25, p220: 5.5,  p400: 11 },
-    { series: "MC1E", base: "MC1E32", in: 32, p220: 7.5,  p400: 15 },
-    { series: "MC1E", base: "MC1E38", in: 38, p220: 9,    p400: 18.5 },
-    { series: "MC1E", base: "MC1E40", in: 40, p220: 11,   p400: 18.5 },
-    { series: "MC1E", base: "MC1E50", in: 50, p220: 15,   p400: 22 },
-    { series: "MC1E", base: "MC1E65", in: 65, p220: 18.5, p400: 30 },
-    { series: "MC1E", base: "MC1E80", in: 80, p220: 22,   p400: 37 },
-    { series: "MC1E", base: "MC1E95", in: 95, p220: 25,   p400: 45 }
+  const contactorsMC1E = [
+    { series: 'MC1E', code: 'MC1E09', Ie: 9, p400: 4 },
+    { series: 'MC1E', code: 'MC1E12', Ie: 12, p400: 5.5 },
+    { series: 'MC1E', code: 'MC1E18', Ie: 18, p400: 7.5 },
+    { series: 'MC1E', code: 'MC1E25', Ie: 25, p400: 11 },
+    { series: 'MC1E', code: 'MC1E32', Ie: 32, p400: 15 },
+    { series: 'MC1E', code: 'MC1E40', Ie: 40, p400: 18.5 },
+    { series: 'MC1E', code: 'MC1E50', Ie: 50, p400: 22 },
+    { series: 'MC1E', code: 'MC1E65', Ie: 65, p400: 30 },
+    { series: 'MC1E', code: 'MC1E80', Ie: 80, p400: 37 },
+    { series: 'MC1E', code: 'MC1E95', Ie: 95, p400: 45 }
   ];
 
-  // Набор катушек управления для контакторов
-  // По таблицам кодов B7/C7/E7/F7/M7/Q7, BD/ED/FD/MD, BNE/KUE.
-  const coilOptions = {
-    MC1D: {
-      AC: [
-        { voltage: "24", code: "B7" },
-        { voltage: "48", code: "E7" },
-        { voltage: "110", code: "F7" },
-        { voltage: "220", code: "M7" },
-        { voltage: "380", code: "Q7" }
-      ],
-      DC: [
-        { voltage: "24", code: "BD" },
-        { voltage: "48", code: "ED" },
-        { voltage: "110", code: "FD" },
-        { voltage: "220", code: "MD" }
-      ],
-      ACDC: [
-        { voltage: "24-60", code: "BNE" },
-        { voltage: "100-250", code: "KUE" }
-      ]
-    },
-    MC1E: {
-      AC: [
-        { voltage: "24", code: "B7" },
-        { voltage: "36", code: "C7" },
-        { voltage: "48", code: "E7" },
-        { voltage: "110", code: "F7" },
-        { voltage: "220/230", code: "M7" },
-        { voltage: "380/400", code: "Q7" }
-      ]
-    }
-  };
-
-  // Тепловые реле MRD и MRE (упрощённые диапазоны, без всех позиций — достаточно для подбора).
-  const thermalMRD = [
-    { code: "MRD01",  irMin: 0.1,  irMax: 0.16 },
-    { code: "MRD02",  irMin: 0.16, irMax: 0.25 },
-    { code: "MRD03",  irMin: 0.25, irMax: 0.4 },
-    { code: "MRD04",  irMin: 0.45, irMax: 0.63 },
-    { code: "MRD05",  irMin: 0.75, irMax: 1.0 },
-    { code: "MRD06",  irMin: 1.1,  irMax: 1.6 },
-    { code: "MRD07",  irMin: 1.8,  irMax: 2.5 },
-    { code: "MRD08",  irMin: 2.9,  irMax: 4.0 },
-    { code: "MRD10",  irMin: 4.5,  irMax: 6.3 },
-    { code: "MRD12",  irMin: 5.5,  irMax: 7.5 },
-    { code: "MRD14",  irMin: 7.2,  irMax: 10 },
-    { code: "MRD16",  irMin:11.3,  irMax: 16 },
-    { code: "MRD21",  irMin:15,    irMax: 20 },
-    { code: "MRD22",  irMin:21,    irMax: 25 },
-    { code: "MRD32",  irMin:24.5,  irMax: 30 },
-    { code: "MRD35",  irMin:33,    irMax: 38 }
+  const contactorsMC1D = [
+    { series: 'MC1D', code: 'MC1D09', Ie: 9, p400: 4 },
+    { series: 'MC1D', code: 'MC1D12', Ie: 12, p400: 5.5 },
+    { series: 'MC1D', code: 'MC1D18', Ie: 18, p400: 7.5 },
+    { series: 'MC1D', code: 'MC1D25', Ie: 25, p400: 11 },
+    { series: 'MC1D', code: 'MC1D32', Ie: 32, p400: 15 },
+    { series: 'MC1D', code: 'MC1D38', Ie: 38, p400: 18.5 },
+    { series: 'MC1D', code: 'MC1D40', Ie: 40, p400: 18.5 },
+    { series: 'MC1D', code: 'MC1D50', Ie: 50, p400: 22 },
+    { series: 'MC1D', code: 'MC1D65', Ie: 65, p400: 30 },
+    { series: 'MC1D', code: 'MC1D80', Ie: 80, p400: 37 },
+    { series: 'MC1D', code: 'MC1D95', Ie: 95, p400: 45 }
   ];
 
-  const thermalMRE = [
-    // MRE25
-    { code: "MRE252P5", irMin: 5,  irMax: 6.3 },
-    { code: "MRE254",   irMin: 2.5, irMax: 4 },
-    { code: "MRE256",   irMin: 4,   irMax: 6 },
-    { code: "MRE258",   irMin: 5.5, irMax: 8 },
-    { code: "MRE2510",  irMin: 7,   irMax:10 },
-    { code: "MRE2513",  irMin: 9,   irMax:13 },
-    { code: "MRE2518",  irMin:12,   irMax:18 },
-    { code: "MRE2525",  irMin:17,   irMax:25 },
-    // MRE38
-    { code: "MRE3832",  irMin:23,   irMax:32 },
-    { code: "MRE3840",  irMin:30,   irMax:40 },
-    // MRE93
-    { code: "MRE9310",  irMin: 7,   irMax:10 },
-    { code: "MRE9313",  irMin: 9,   irMax:13 },
-    { code: "MRE9318",  irMin:12,   irMax:18 },
-    { code: "MRE9325",  irMin:17,   irMax:25 },
-    { code: "MRE9332",  irMin:23,   irMax:32 },
-    { code: "MRE9340",  irMin:30,   irMax:40 },
-    { code: "MRE9350",  irMin:37,   irMax:50 },
-    { code: "MRE9365",  irMin:48,   irMax:65 },
-    { code: "MRE9370",  irMin:55,   irMax:70 },
-    { code: "MRE9380",  irMin:63,   irMax:80 },
-    { code: "MRE9393",  irMin:80,   irMax:93 }
+  const thermalRelaysMRE = [
+    { series: 'MRE', family: 'MRE25', code: 'MRE25P16', irMin: 0.1, irMax: 0.16, compatible: 'MC1E 09–38' },
+    { series: 'MRE', family: 'MRE25', code: 'MRE25P25', irMin: 0.16, irMax: 0.25, compatible: 'MC1E 09–38' },
+    { series: 'MRE', family: 'MRE25', code: 'MRE25P4', irMin: 0.25, irMax: 0.4, compatible: 'MC1E 09–38' },
+    { series: 'MRE', family: 'MRE25', code: 'MRE25P63', irMin: 0.4, irMax: 0.63, compatible: 'MC1E 09–38' },
+    { series: 'MRE', family: 'MRE25', code: 'MRE251', irMin: 0.63, irMax: 1, compatible: 'MC1E 09–38' },
+    { series: 'MRE', family: 'MRE25', code: 'MRE2516', irMin: 1, irMax: 1.6, compatible: 'MC1E 09–38' },
+    { series: 'MRE', family: 'MRE25', code: 'MRE252P5', irMin: 1.6, irMax: 2.5, compatible: 'MC1E 09–38' },
+    { series: 'MRE', family: 'MRE25', code: 'MRE254', irMin: 2.5, irMax: 4, compatible: 'MC1E 09–38' },
+    { series: 'MRE', family: 'MRE25', code: 'MRE256', irMin: 4, irMax: 6, compatible: 'MC1E 09–38' },
+    { series: 'MRE', family: 'MRE25', code: 'MRE258', irMin: 5.5, irMax: 8, compatible: 'MC1E 09–38' },
+    { series: 'MRE', family: 'MRE25', code: 'MRE2510', irMin: 7, irMax: 10, compatible: 'MC1E 09–38' },
+    { series: 'MRE', family: 'MRE25', code: 'MRE2513', irMin: 9, irMax: 13, compatible: 'MC1E 12–38' },
+    { series: 'MRE', family: 'MRE25', code: 'MRE2518', irMin: 12, irMax: 18, compatible: 'MC1E 18–38' },
+    { series: 'MRE', family: 'MRE25', code: 'MRE2525', irMin: 17, irMax: 25, compatible: 'MC1E 25–38' },
+    { series: 'MRE', family: 'MRE38', code: 'MRE3832', irMin: 23, irMax: 32, compatible: 'MC1E 25–38' },
+    { series: 'MRE', family: 'MRE38', code: 'MRE3840', irMin: 30, irMax: 40, compatible: 'MC1E 32–38' },
+    { series: 'MRE', family: 'MRE93', code: 'MRE9310', irMin: 7, irMax: 10, compatible: 'MC1E 40–95' },
+    { series: 'MRE', family: 'MRE93', code: 'MRE9313', irMin: 9, irMax: 13, compatible: 'MC1E 40–95' },
+    { series: 'MRE', family: 'MRE93', code: 'MRE9318', irMin: 12, irMax: 18, compatible: 'MC1E 40–95' },
+    { series: 'MRE', family: 'MRE93', code: 'MRE9325', irMin: 17, irMax: 25, compatible: 'MC1E 40–95' },
+    { series: 'MRE', family: 'MRE93', code: 'MRE9332', irMin: 23, irMax: 32, compatible: 'MC1E 40–95' },
+    { series: 'MRE', family: 'MRE93', code: 'MRE9340', irMin: 30, irMax: 40, compatible: 'MC1E 40–95' },
+    { series: 'MRE', family: 'MRE93', code: 'MRE9350', irMin: 37, irMax: 50, compatible: 'MC1E 50–95' },
+    { series: 'MRE', family: 'MRE93', code: 'MRE9365', irMin: 48, irMax: 65, compatible: 'MC1E 50–95' },
+    { series: 'MRE', family: 'MRE93', code: 'MRE9370', irMin: 55, irMax: 70, compatible: 'MC1E 65–95' },
+    { series: 'MRE', family: 'MRE93', code: 'MRE9380', irMin: 63, irMax: 80, compatible: 'MC1E 80–95' },
+    { series: 'MRE', family: 'MRE93', code: 'MRE9393', irMin: 80, irMax: 93, compatible: 'MC1E 95' }
   ];
 
-  // Описания аксессуаров — кратко, для вывода в спецификации
-  const accessoryDescriptions = {
-    // breaker accessories
-    "GMAE20": "Фронтальный блок доп. контактов 2 NO для GM2/GM3.",
-    "GMAE11": "Фронтальный блок доп. контактов 1 NO + 1 NC для GM2/GM3.",
-    "GMAN20": "Боковой блок доп. контактов 2 NO для GM2/GM3.",
-    "GMAN11": "Боковой блок доп. контактов 1 NO + 1 NC для GM2/GM3.",
-    "GMAM":   "Контакт сигнализации короткого замыкания (отключение по КЗ).",
-    "GMAD11": "Блок аварийной сигнализации: 1 NO + 1 NC, один контакт — сигнал отключения.",
-    "GMAD20": "Блок аварийной сигнализации: 2 NO, раннее замыкание для сигнализации.",
-    "GMAU110":"Расцепитель минимального напряжения 110–115 В AC/DC.",
-    "GMAU220":"Расцепитель минимального напряжения 220–240 В AC/DC.",
-    "GMAU380":"Расцепитель минимального напряжения 380–400 В AC/DC.",
-    "GMAU415":"Расцепитель минимального напряжения 415 В AC/DC.",
-    "GMAS110":"Независимый расцепитель 110–115 В (дистанционное отключение).",
-    "GMAS220":"Независимый расцепитель 220–240 В.",
-    "GMAS380":"Независимый расцепитель 380–400 В.",
-    "GMAS415":"Независимый расцепитель 415 В.",
-    "GM2G245":"Комплект шин 2×3P, 45 мм, для GM2.",
-    "GM2G345":"Комплект шин 3×3P, 45 мм, для GM2.",
-    "GM2G445":"Комплект шин 4×3P, 45 мм, для GM2.",
-    "GM2G545":"Комплект шин 5×3P, 45 мм, для GM2.",
-    "GM2AF3":"Соединительный блок GM2–MC1D 9–32 А.",
-    "GM2AF318E":"Соединительный блок GM2–MC1E 9–18 А.",
-    "GM2AF338E":"Соединительный блок GM2–MC1E 25–38 А.",
-    "GM2MC02":"Защитный корпус для GM2 (настенный / дверной монтаж).",
-    "GM1L3":"Ограничитель тока короткого замыкания 100 кА (верхний монтаж).",
-    "GM2APN01":"Чёрная выносная рукоятка для GM2P/GM2L (дверной привод).",
+  const thermalRelaysMRD = [
+    { series: 'MRD', family: 'MRD0', code: 'MRD01', irMin: 0.1, irMax: 0.16, compatible: 'MC1D 09–38' },
+    { series: 'MRD', family: 'MRD0', code: 'MRD02', irMin: 0.16, irMax: 0.25, compatible: 'MC1D 09–38' },
+    { series: 'MRD', family: 'MRD0', code: 'MRD03', irMin: 0.25, irMax: 0.4, compatible: 'MC1D 09–38' },
+    { series: 'MRD', family: 'MRD0', code: 'MRD03S', irMin: 0.35, irMax: 0.5, compatible: 'MC1D 09–38' },
+    { series: 'MRD', family: 'MRD0', code: 'MRD04', irMin: 0.45, irMax: 0.63, compatible: 'MC1D 09–38' },
+    { series: 'MRD', family: 'MRD0', code: 'MRD05S', irMin: 0.55, irMax: 0.8, compatible: 'MC1D 09–38' },
+    { series: 'MRD', family: 'MRD0', code: 'MRD05', irMin: 0.75, irMax: 1, compatible: 'MC1D 09–38' },
+    { series: 'MRD', family: 'MRD0', code: 'MRD06S', irMin: 0.9, irMax: 1.3, compatible: 'MC1D 09–38' },
+    { series: 'MRD', family: 'MRD0', code: 'MRD06', irMin: 1.1, irMax: 1.6, compatible: 'MC1D 09–38' },
+    { series: 'MRD', family: 'MRD0', code: 'MRD07S', irMin: 1.4, irMax: 2, compatible: 'MC1D 09–38' },
+    { series: 'MRD', family: 'MRD0', code: 'MRD07', irMin: 1.8, irMax: 2.5, compatible: 'MC1D 09–38' },
+    { series: 'MRD', family: 'MRD0', code: 'MRD08S', irMin: 2.3, irMax: 3.2, compatible: 'MC1D 09–38' },
+    { series: 'MRD', family: 'MRD0', code: 'MRD08', irMin: 2.9, irMax: 4, compatible: 'MC1D 09–38' },
+    { series: 'MRD', family: 'MRD0', code: 'MRD10S', irMin: 3.5, irMax: 4.8, compatible: 'MC1D 09–38' },
+    { series: 'MRD', family: 'MRD0', code: 'MRD10', irMin: 4.5, irMax: 6.3, compatible: 'MC1D 09–38' },
+    { series: 'MRD', family: 'MRD0', code: 'MRD12', irMin: 5.5, irMax: 7.5, compatible: 'MC1D 09–38' },
+    { series: 'MRD', family: 'MRD0', code: 'MRD14', irMin: 7.2, irMax: 10, compatible: 'MC1D 09–38' },
+    { series: 'MRD', family: 'MRD0', code: 'MRD16S', irMin: 9, irMax: 12.5, compatible: 'MC1D 09–38' },
+    { series: 'MRD', family: 'MRD0', code: 'MRD16', irMin: 11.3, irMax: 16, compatible: 'MC1D 09–38' },
+    { series: 'MRD', family: 'MRD0', code: 'MRD21', irMin: 15, irMax: 20, compatible: 'MC1D 09–38' },
+    { series: 'MRD', family: 'MRD0', code: 'MRD22S', irMin: 17.5, irMax: 21.5, compatible: 'MC1D 09–38' },
+    { series: 'MRD', family: 'MRD0', code: 'MRD22', irMin: 21, irMax: 25, compatible: 'MC1D 09–38' },
+    { series: 'MRD', family: 'MRD33', code: 'MRD3322', irMin: 17, irMax: 25, compatible: 'MC1D 40–95' },
+    { series: 'MRD', family: 'MRD33', code: 'MRD3353', irMin: 24.5, irMax: 36, compatible: 'MC1D 40–95' },
+    { series: 'MRD', family: 'MRD33', code: 'MRD3355', irMin: 35, irMax: 47, compatible: 'MC1D 40–95' },
+    { series: 'MRD', family: 'MRD33', code: 'MRD3359', irMin: 45, irMax: 60, compatible: 'MC1D 40–95' },
+    { series: 'MRD', family: 'MRD33', code: 'MRD3361', irMin: 58, irMax: 75, compatible: 'MC1D 40–95' },
+    { series: 'MRD', family: 'MRD33', code: 'MRD3363', irMin: 72, irMax: 90, compatible: 'MC1D 40–95' },
+    { series: 'MRD', family: 'MRD33', code: 'MRD3365', irMin: 77, irMax: 97, compatible: 'MC1D 40–95' }
+  ];
 
-    // contactor accessories
-    "MADN11":"Фронтальный блок доп. контактов 1 NO + 1 NC для MC1D/MC1E.",
-    "MADN20":"Фронтальный блок доп. контактов 2 NO для MC1D/MC1E.",
-    "MADN02":"Фронтальный блок доп. контактов 2 NC для MC1D/MC1E.",
-    "MADN22":"Фронтальный блок доп. контактов 2 NO + 2 NC для MC1D/MC1E.",
-    "MAD8N11":"Боковой блок доп. контактов 1 NO + 1 NC для MC1D.",
-    "MAD8N20":"Боковой блок доп. контактов 2 NO для MC1D.",
-    "MAD8N02":"Боковой блок доп. контактов 2 NC для MC1D.",
-    "MADT0":"Блок выдержки времени на срабатывание 0,1–3 с (1 NO + 1 NC).",
-    "MADT2":"Блок выдержки времени на срабатывание 0,1–30 с.",
-    "MADT4":"Блок выдержки времени на срабатывание 10–180 с.",
-    "MADR0":"Блок выдержки времени на отпускание 0,1–3 с.",
-    "MADR2":"Блок выдержки времени на отпускание 0,1–30 с.",
-    "MADR4":"Блок выдержки времени на отпускание 10–180 с.",
-    "MAD4VE":"Варистор 24–48 В AC/DC для катушки контактора.",
-    "MAD4VG":"Варистор 50–127 В AC/DC.",
-    "MAD4VU":"Варистор 110–250 В AC/DC.",
-    "MAD4VN":"Варистор 380–440 В AC/DC.",
-    "MAD4RCE":"R-C ограничитель 24–48 В AC.",
-    "MAD4RCG":"R-C ограничитель 50–127 В AC.",
-    "MAD4RCU":"R-C ограничитель 110–250 В AC.",
-    "MAD4RCN":"R-C ограничитель 380–440 В AC.",
-    "MA1M38":"Механическая блокировка для MC1D09–38 (реверсивные схемы).",
-    "MA1M65":"Механическая блокировка для MC1D40–95.",
-  };
-
-  // --- СОСТОЯНИЕ -------------------------------------------------------------
+  // ---------- СОСТОЯНИЕ ----------
 
   const state = {
-    deviceType: "breaker",     // breaker | contactor | thermal
-    targetCurrent: null,       // расчётный ток для подбора
-    baseDevice: null,          // объект базового устройства (автомат / контактор / реле)
-    accessories: {},           // выбранные аксессуары (по типам)
+    step: 1,
+    supplyVoltage: 400,
+    motorPower: null,
+    motorCurrent: null,
+    motorCurrentEstimated: null,
+    breaker: null,
+    breakerAccessories: [],
+    contactorSeries: 'MC1E',
+    contactor: null,
+    coilCode: null,
+    contactorAccessories: [],
+    relaySeriesMode: 'auto',
+    relay: null
   };
 
-  // --- ВСПОМОГАТЕЛЬНЫЕ ФУНКЦИИ ----------------------------------------------
+  // ---------- УТИЛИТЫ ----------
 
-  function parseNumber(value) {
-    if (value == null) return NaN;
-    return parseFloat(String(value).replace(",", "."));
+  function formatNumber(num, decimals = 1) {
+    if (num == null || isNaN(num)) return '—';
+    return Number(num).toFixed(decimals).replace('.', ',');
   }
 
-  function calculateTargetCurrent() {
-    const calcMode = document.querySelector('input[name="calcMode"]:checked').value;
-    let target = null;
+  function computeEstimatedCurrent(powerKw, voltage) {
+    if (!powerKw || !voltage) return null;
+    const cosPhi = 0.8;
+    const efficiency = 0.9;
+    return (powerKw * 1000) / (Math.sqrt(3) * voltage * cosPhi * efficiency);
+  }
 
-    if (calcMode === "power") {
-      const p = parseNumber(document.getElementById("motorPower").value);
-      const u = parseNumber(document.getElementById("supplyVoltage").value);
-      if (!isNaN(p) && p > 0 && !isNaN(u) && u > 0) {
-        const cosPhi = 0.8;
-        const eta = 0.9;
-        target = p * 1000 / (Math.sqrt(3) * u * cosPhi * eta);
+  function getMotorCurrent() {
+    if (state.motorCurrent != null && !isNaN(state.motorCurrent) && state.motorCurrent > 0) {
+      return state.motorCurrent;
+    }
+    if (state.motorCurrentEstimated != null && !isNaN(state.motorCurrentEstimated)) {
+      return state.motorCurrentEstimated;
+    }
+    return null;
+  }
+
+  function isStep1Valid() {
+    return !!state.supplyVoltage && (!!state.motorPower || !!state.motorCurrent || !!state.motorCurrentEstimated);
+  }
+
+  function resolveRelaySeries() {
+    if (state.relaySeriesMode === 'MRE') return 'MRE';
+    if (state.relaySeriesMode === 'MRD') return 'MRD';
+    if (!state.contactor) return 'MRE';
+    return state.contactor.series === 'MC1D' ? 'MRD' : 'MRE';
+  }
+
+  // ---------- DOM-ЛОГИКА ----------
+
+  (function initConfigurator() {
+    const stepViews = Array.from(document.querySelectorAll('.step-view'));
+    const stepItems = Array.from(document.querySelectorAll('.step-item'));
+
+    const contentTitle = document.getElementById('content-title');
+    const contentSubtitle = document.getElementById('content-subtitle');
+    const badgeText = document.getElementById('badge-text');
+
+    const prevStepBtn = document.getElementById('prevStepBtn');
+    const nextStepBtn = document.getElementById('nextStepBtn');
+
+    const supplyVoltageEl = document.getElementById('supplyVoltage');
+    const motorPowerEl = document.getElementById('motorPower');
+    const motorCurrentEl = document.getElementById('motorCurrent');
+    const powerInputGroup = document.getElementById('powerInputGroup');
+    const currentInputGroup = document.getElementById('currentInputGroup');
+    const estimateCurrentBtn = document.getElementById('estimateCurrentBtn');
+    const currentEstimateHint = document.getElementById('currentEstimateHint');
+
+    const breakerTableBody = document.getElementById('breakerTableBody');
+    const contactorTableBody = document.getElementById('contactorTableBody');
+    const relayTableBody = document.getElementById('relayTableBody');
+
+    const coilVoltageSelect = document.getElementById('coilVoltageSelect');
+    const coilHint = document.getElementById('coilHint');
+
+    const summaryTextEl = document.getElementById('summaryText');
+    const summaryTableBody = document.getElementById('summaryTableBody');
+    const copySummaryBtn = document.getElementById('copySummaryBtn');
+    const resetConfigBtn = document.getElementById('resetConfigBtn');
+
+    function canGoForwardFromStep(step) {
+      switch (step) {
+        case 1: return isStep1Valid();
+        case 2: return !!state.breaker;
+        case 3: return !!(state.contactor && state.coilCode);
+        case 4: return !!state.relay;
+        default: return false;
       }
-    } else {
-      const i = parseNumber(document.getElementById("lineCurrent").value);
-      if (!isNaN(i) && i > 0) {
-        target = i;
-      }
     }
 
-    state.targetCurrent = target;
-    const label = document.getElementById("targetCurrentValue");
-    if (target == null) {
-      label.textContent = "—";
-    } else {
-      label.textContent = "≈ " + target.toFixed(1) + " А";
-    }
-  }
-
-  function findBreakerByCurrent(series, frame, targetCurrent) {
-    if (!targetCurrent || targetCurrent <= 0) return null;
-
-    if (frame === "GM3" || series === "GM3P") {
-      const sorted = breakerRangesGM3.slice().sort((a, b) => a.in - b.in);
-      const range = sorted.find(r => targetCurrent > r.irMin && targetCurrent <= r.irMax);
-      if (!range) return null;
-      return {
-        type: "breaker",
-        family: "GM3",
-        series: "GM3P",
-        code: range.code,
-        in: range.in,
-        irMin: range.irMin,
-        irMax: range.irMax,
-        p400: range.p400,
-        description: `Автомат защиты двигателя ${range.code}, серия GM3P, комбинированный расцепитель.`
-      };
-    } else {
-      const sorted = breakerRangesGM2.slice().sort((a, b) => a.in - b.in);
-      const range = sorted.find(r => targetCurrent > r.irMin && targetCurrent <= r.irMax);
-      if (!range) return null;
-      const code = range.codes[series];
-      if (!code) return null;
-      return {
-        type: "breaker",
-        family: "GM2",
-        series: series,
-        code: code,
-        in: range.in,
-        irMin: range.irMin,
-        irMax: range.irMax,
-        p400: range.p400,
-        description: `Автомат защиты двигателя ${code}, серия ${series}, комбинированный/магнитный расцепитель.`
-      };
-    }
-  }
-
-  function findContactorByCurrent(series, targetCurrent) {
-    if (!targetCurrent || targetCurrent <= 0) return null;
-    const subset = contactors.filter(c => c.series === series).sort((a, b) => a.in - b.in);
-    let candidate = subset.find(c => targetCurrent <= c.in);
-    if (!candidate) candidate = subset[subset.length - 1];
-    return {
-      type: "contactor",
-      series: candidate.series,
-      base: candidate.base,
-      in: candidate.in,
-      p400: candidate.p400,
-      p220: candidate.p220,
-      coilSuffix: null,
-      coilText: "",
-      description: `Контактор ${candidate.base}, ${candidate.series}, 3P, AC-3 ${candidate.in} А при 400 В.`
-    };
-  }
-
-  function findThermalByCurrent(series, targetCurrent) {
-    if (!targetCurrent || targetCurrent <= 0) return null;
-    const list = series === "MRD" ? thermalMRD : thermalMRE;
-    const sorted = list.slice().sort((a, b) => a.irMin - b.irMin);
-    const found = sorted.find(r => targetCurrent >= r.irMin && targetCurrent <= r.irMax);
-    if (!found) return null;
-    return {
-      type: "thermal",
-      series: series,
-      code: found.code,
-      irMin: found.irMin,
-      irMax: found.irMax,
-      description: `Тепловое реле ${series} ${found.code}, диапазон ${found.irMin}–${found.irMax} А.`
-    };
-  }
-
-  function buildCoilSuffix(series, family, voltage) {
-    if (!series || !family || !voltage) return null;
-    const opt = coilOptions[series];
-    if (!opt) return null;
-    if (family === "ACDC" && !opt.ACDC) return null;
-
-    let list;
-    if (family === "AC") list = opt.AC;
-    else if (family === "DC") list = opt.DC;
-    else list = opt.ACDC;
-
-    if (!list) return null;
-    const entry = list.find(o => o.voltage === voltage);
-    return entry ? entry.code : null;
-  }
-
-  function fillCoilVoltageOptions() {
-    const series = document.getElementById("contactorSeries").value;
-    const family = document.getElementById("coilFamily").value;
-    const select = document.getElementById("coilVoltage");
-    select.innerHTML = "";
-
-    const optGroup = coilOptions[series];
-    let list = null;
-    if (family === "AC") list = optGroup.AC;
-    else if (family === "DC") list = optGroup.DC;
-    else list = optGroup.ACDC;
-
-    if (!list) {
-      const o = document.createElement("option");
-      o.value = "";
-      o.textContent = "Недоступно";
-      select.appendChild(o);
-      return;
-    }
-    const placeholder = document.createElement("option");
-    placeholder.value = "";
-    placeholder.textContent = "Выберите напряжение";
-    select.appendChild(placeholder);
-
-    list.forEach(item => {
-      const o = document.createElement("option");
-      o.value = item.voltage;
-      o.textContent = item.voltage + " В (" + item.code + ")";
-      select.appendChild(o);
-    });
-  }
-
-  function updateUvShuntConflict() {
-    const uv = document.getElementById("uvRelease").value;
-    const shunt = document.getElementById("shuntTrip").value;
-    const alert = document.getElementById("releaseConflict");
-    if (uv && shunt) {
-      alert.style.display = "block";
-    } else {
-      alert.style.display = "none";
-    }
-  }
-
-  function updateSideAuxVisibility() {
-    const count = parseInt(document.getElementById("breakerSideAuxCount").value || "0", 10);
-    const wrapper = document.getElementById("breakerSideAuxTypes");
-    const secondWrapper = document.getElementById("breakerSideAux2Wrapper");
-    if (count === 0) {
-      wrapper.style.display = "none";
-    } else {
-      wrapper.style.display = "block";
-      secondWrapper.style.display = (count === 2) ? "block" : "none";
-    }
-  }
-
-  function updateCalcModeVisibility() {
-    const calcMode = document.querySelector('input[name="calcMode"]:checked').value;
-    const pf = document.getElementById("powerField");
-    const cf = document.getElementById("currentField");
-    if (calcMode === "power") {
-      pf.style.display = "flex";
-      cf.style.display = "none";
-    } else {
-      pf.style.display = "none";
-      cf.style.display = "flex";
-    }
-  }
-
-  function setDeviceType(type) {
-    state.deviceType = type;
-    const sections = document.querySelectorAll('[data-device]');
-    sections.forEach(sec => {
-      if (sec.getAttribute("data-device") === type) {
-        sec.style.display = "";
-      } else if (!sec.getAttribute("data-device").includes(type)) {
-        // Секции, привязанные к конкретному типу
-        if (sec.getAttribute("data-device") === "breaker" ||
-            sec.getAttribute("data-device") === "contactor" ||
-            sec.getAttribute("data-device") === "thermal") {
-          sec.style.display = "none";
+    function updateStepIndicators() {
+      stepItems.forEach((item, index) => {
+        const stepNumber = index + 1;
+        item.classList.remove('is-active', 'is-complete');
+        if (stepNumber === state.step) {
+          item.classList.add('is-active');
+        } else if (stepNumber < state.step) {
+          item.classList.add('is-complete');
         }
-      }
-    });
-
-    // Обновление подписи справа
-    const label = document.getElementById("currentDeviceTypeLabel");
-    if (type === "breaker") label.textContent = "Автомат защиты двигателя";
-    else if (type === "contactor") label.textContent = "Контактор (с опцией теплового реле)";
-    else label.textContent = "Тепловое реле";
-
-    // Обновляем расчёт
-    updateConfiguration();
-  }
-
-  function markDeviceTypeChips(type) {
-    document.querySelectorAll('input[name="deviceType"]').forEach(input => {
-      const chip = input.closest(".chip");
-      if (input.value === type) chip.classList.add("chip-selected");
-      else chip.classList.remove("chip-selected");
-    });
-  }
-
-  function markCalcModeChips(mode) {
-    document.querySelectorAll('input[name="calcMode"]').forEach(input => {
-      const chip = input.closest(".chip");
-      if (input.value === mode) chip.classList.add("chip-selected");
-      else chip.classList.remove("chip-selected");
-    });
-  }
-
-  function markRadioChipGroup(name) {
-    const value = document.querySelector('input[name="' + name + '"]:checked')?.value;
-    if (!value) return;
-    document.querySelectorAll('input[name="' + name + '"]').forEach(input => {
-      const chip = input.closest(".chip");
-      if (!chip) return;
-      if (input.value === value) chip.classList.add("chip-selected");
-      else chip.classList.remove("chip-selected");
-    });
-  }
-
-  // --- ПОСТРОЕНИЕ СПЕЦИФИКАЦИИ ----------------------------------------------
-
-  function buildSpecificationRows() {
-    const rows = [];
-    const base = state.baseDevice;
-    if (!base) return rows;
-
-    // Базовое устройство
-    if (base.type === "breaker") {
-      rows.push({
-        code: base.code,
-        name: base.series + " — автомат защиты двигателя",
-        description: `3-полюсный автомат защиты двигателя, диапазон уставок ${base.irMin}–${base.irMax} А, AC-3 до ${base.p400 ? base.p400 + " кВт при 400 В" : "каталожное значение по таблице"}.`,
-        qty: 1,
-        base: true
-      });
-    } else if (base.type === "contactor") {
-      const fullRef = base.base + (base.coilSuffix || "");
-      const coilText = base.coilText || "";
-      rows.push({
-        code: fullRef,
-        name: base.series + " — контактор",
-        description: `Контактор ${base.series}, 3P, AC-3 ${base.in} А при 400 В, мощность до ${base.p400} кВт. ${coilText}`,
-        qty: 1,
-        base: true
-      });
-    } else if (base.type === "thermal") {
-      rows.push({
-        code: base.code,
-        name: base.series + " — тепловое реле перегрузки",
-        description: `Диапазон уставок ${base.irMin}–${base.irMax} А, защита двигателя от перегрузки, обрыва фазы и затянутого пуска.`,
-        qty: 1,
-        base: true
       });
     }
 
-    // Аксессуары
-    const acc = state.accessories || {};
-
-    function addAccessory(code, nameFallback) {
-      if (!code) return;
-      const desc = accessoryDescriptions[code] || nameFallback || "";
-      rows.push({
-        code,
-        name: nameFallback || "Аксессуар " + code,
-        description: desc,
-        qty: 1,
-        base: false
+    function showStep(step) {
+      stepViews.forEach(view => {
+        const s = Number(view.getAttribute('data-step'));
+        view.classList.toggle('is-active', s === step);
       });
-    }
 
-    if (acc.breakerFrontAux) {
-      addAccessory(acc.breakerFrontAux, "Фронтальный доп. контакт " + acc.breakerFrontAux);
-    }
-    if (Array.isArray(acc.breakerSideAux)) {
-      acc.breakerSideAux.forEach(code => addAccessory(code, "Боковой доп. контакт " + code));
-    }
-    if (acc.breakerFaultContact) {
-      addAccessory(acc.breakerFaultContact, "Сигнализация аварии " + acc.breakerFaultContact);
-    }
-    if (acc.uvRelease) {
-      addAccessory(acc.uvRelease, "Расцепитель минимального напряжения " + acc.uvRelease);
-    }
-    if (acc.shuntTrip) {
-      addAccessory(acc.shuntTrip, "Независимый расцепитель " + acc.shuntTrip);
-    }
-    if (acc.busbar) {
-      addAccessory(acc.busbar, "Комплект трёхполюсных шин " + acc.busbar);
-    }
-    if (acc.linkBlock) {
-      addAccessory(acc.linkBlock, "Соединительный блок " + acc.linkBlock);
-    }
-    if (acc.breakerEnclosure) {
-      addAccessory("GM2MC02", "Защитный корпус GM2MC02");
-    }
-    if (acc.breakerLimiter) {
-      addAccessory("GM1L3", "Ограничитель тока КЗ GM1L3");
-    }
-    if (acc.breakerBlackHandle) {
-      addAccessory("GM2APN01", "Чёрная выносная рукоятка GM2APN01");
-    }
-
-    if (acc.contactorFrontAux) {
-      addAccessory(acc.contactorFrontAux, "Фронтальный доп. контакт " + acc.contactorFrontAux);
-    }
-    if (acc.contactorSideAux) {
-      addAccessory(acc.contactorSideAux, "Боковой доп. контакт " + acc.contactorSideAux);
-    }
-    if (acc.timeOn) {
-      addAccessory(acc.timeOn, "Блок выдержки времени на срабатывание " + acc.timeOn);
-    }
-    if (acc.timeOff) {
-      addAccessory(acc.timeOff, "Блок выдержки времени на отпускание " + acc.timeOff);
-    }
-    if (acc.surgeModule) {
-      addAccessory(acc.surgeModule, "Ограничитель перенапряжений " + acc.surgeModule);
-    }
-    if (acc.mechLock38) {
-      addAccessory("MA1M38", "Механическая блокировка MA1M38");
-    }
-    if (acc.mechLock65) {
-      addAccessory("MA1M65", "Механическая блокировка MA1M65");
-    }
-
-    if (acc.thermalRelay && base.type !== "thermal") {
-      addAccessory(acc.thermalRelay.code, `Тепловое реле ${acc.thermalRelay.series} ${acc.thermalRelay.code}`);
-    }
-
-    return rows;
-  }
-
-  function renderBaseDeviceCard() {
-    const card = document.getElementById("baseDeviceCard");
-    const base = state.baseDevice;
-    if (!base) {
-      card.classList.add("empty");
-      card.innerHTML = `
-        <h2>Начните с выбора параметров слева</h2>
-        <div class="subtitle">Здесь появится выбранный автомат, контактор или тепловое реле с кратким описанием.</div>
-        <div class="meta">
-          <span>Номинальный ток: —</span>
-          <span>Номинальная мощность: —</span>
-          <span>Артикул: —</span>
-        </div>
-      `;
-      return;
-    }
-    card.classList.remove("empty");
-
-    let title = "";
-    let subtitle = "";
-    let meta = "";
-    const tags = [];
-
-    if (base.type === "breaker") {
-      title = `Автомат защиты двигателя ${base.code}`;
-      subtitle = base.description;
-      meta = `
-        <span>Диапазон уставок: ${base.irMin}–${base.irMax} А</span>
-        <span>Номинальный ток In: ${base.in} А</span>
-        <span>AC-3 до ${base.p400 || "—"} кВт (400 В)</span>
-      `;
-      tags.push(`Серия ${base.series}`, base.family === "GM2" ? "корпус GM2 (45 мм)" : "корпус GM3 (55 мм)");
-    } else if (base.type === "contactor") {
-      const fullRef = base.base + (base.coilSuffix || "");
-      title = `Контактор ${fullRef}`;
-      subtitle = base.description;
-      meta = `
-        <span>AC-3: ${base.in} А при 400 В</span>
-        <span>P до ${base.p400} кВт (400 В)</span>
-        <span>Катушка: ${base.coilText || "код не выбран"}</span>
-      `;
-      tags.push(`Серия ${base.series}`, "3P", "встроенные доп. контакты 1 NO + 1 NC");
-    } else if (base.type === "thermal") {
-      title = `Тепловое реле ${base.series} ${base.code}`;
-      subtitle = base.description;
-      meta = `
-        <span>Диапазон уставок: ${base.irMin}–${base.irMax} А</span>
-        <span>Тип: 3-полюсное, защита от перегрузки и обрыва фазы</span>
-      `;
-      tags.push(`Серия ${base.series}`);
-    }
-
-    let tagsHtml = "";
-    if (tags.length) {
-      tagsHtml = `<div class="tag-row">` + tags.map(t => `<span class="tag">${t}</span>`).join("") + `</div>`;
-    }
-
-    card.innerHTML = `
-      <h2>${title}</h2>
-      <div class="subtitle">${subtitle}</div>
-      ${tagsHtml}
-      <div class="meta">${meta}</div>
-    `;
-  }
-
-  function renderBOM() {
-    const rows = buildSpecificationRows();
-    const tbody = document.getElementById("bomTbody");
-    const table = document.getElementById("bomTable");
-    const emptyMsg = document.getElementById("bomEmpty");
-    const countSpan = document.getElementById("bomCount");
-    const copyBtn = document.getElementById("copySpecBtn");
-    const exportBtn = document.getElementById("exportCsvBtn");
-    const cartBtn = document.getElementById("fakeCartBtn");
-
-    tbody.innerHTML = "";
-    if (!rows.length) {
-      table.style.display = "none";
-      emptyMsg.style.display = "block";
-      countSpan.textContent = "0";
-      copyBtn.disabled = true;
-      exportBtn.disabled = true;
-      cartBtn.disabled = true;
-      return;
-    }
-
-    rows.forEach(row => {
-      const tr = document.createElement("tr");
-      if (row.base) tr.classList.add("base-row");
-      tr.innerHTML = `
-        <td class="code-cell">${row.code}</td>
-        <td>${row.name}</td>
-        <td>${row.description}</td>
-        <td style="text-align:center;">${row.qty}</td>
-      `;
-      tbody.appendChild(tr);
-    });
-
-    table.style.display = "table";
-    emptyMsg.style.display = "none";
-    countSpan.textContent = String(rows.length);
-    copyBtn.disabled = false;
-    exportBtn.disabled = false;
-    cartBtn.disabled = false;
-  }
-
-  function buildSpecTextForClipboard() {
-    const rows = buildSpecificationRows();
-    if (!rows.length) return "";
-    const lines = [];
-    lines.push("Каталожный номер;Наименование;Описание;Кол-во");
-    rows.forEach(r => {
-      const line = [
-        r.code,
-        r.name.replace(/;/g, ","),
-        r.description.replace(/;/g, ","),
-        r.qty
-      ].join(";");
-      lines.push(line);
-    });
-    return lines.join("\n");
-  }
-
-  function downloadSpecCsv() {
-    const text = buildSpecTextForClipboard();
-    if (!text) return;
-    const blob = new Blob([text], { type: "text/csv;charset=utf-8;" });
-    const url = URL.createObjectURL(blob);
-    const a = document.createElement("a");
-    a.href = url;
-    a.download = "spec_systemepact_m.csv";
-    document.body.appendChild(a);
-    a.click();
-    document.body.removeChild(a);
-    URL.revokeObjectURL(url);
-  }
-
-  // --- ГЛАВНОЕ ОБНОВЛЕНИЕ КОНФИГУРАЦИИ --------------------------------------
-
-  function updateConfiguration() {
-    calculateTargetCurrent();
-
-    const deviceType = state.deviceType;
-    const targetI = state.targetCurrent;
-
-    let base = null;
-    let accessories = {};
-
-    if (deviceType === "breaker") {
-      const series = document.getElementById("breakerSeries").value;
-      const frame = document.querySelector('input[name="breakerFrame"]:checked')?.value || "GM2";
-      base = findBreakerByCurrent(series, frame, targetI);
-
-      // Аксессуары автомата
-      const frontAux = document.getElementById("breakerFrontAux").value || null;
-      const sideCount = parseInt(document.getElementById("breakerSideAuxCount").value || "0", 10);
-      const sideAux = [];
-      if (sideCount >= 1) sideAux.push(document.getElementById("breakerSideAux1").value);
-      if (sideCount >= 2) sideAux.push(document.getElementById("breakerSideAux2").value);
-      const fault = document.getElementById("breakerFaultContacts").value || null;
-      const uv = document.getElementById("uvRelease").value || null;
-      const shunt = document.getElementById("shuntTrip").value || null;
-      const busbar = document.getElementById("busbar").value || null;
-      const linkBlock = document.getElementById("linkBlock").value || null;
-      const enclosure = document.getElementById("breakerEnclosure").checked;
-      const limiter = document.getElementById("breakerLimiter").checked;
-      const blackHandle = document.getElementById("breakerBlackHandle").checked;
-
-      accessories = {
-        breakerFrontAux: frontAux,
-        breakerSideAux: sideAux,
-        breakerFaultContact: fault,
-        uvRelease: uv,
-        shuntTrip: shunt,
-        busbar: busbar,
-        linkBlock: linkBlock,
-        breakerEnclosure: enclosure,
-        breakerLimiter: limiter,
-        breakerBlackHandle: blackHandle
+      const titles = {
+        1: '1. Исходные данные двигателя',
+        2: '2. Автомат защиты двигателя',
+        3: '3. Контактор для управления двигателем',
+        4: '4. Тепловое реле перегрузки',
+        5: '5. Итоговая спецификация'
       };
-    } else if (deviceType === "contactor") {
-      const series = document.getElementById("contactorSeries").value;
-      base = findContactorByCurrent(series, targetI);
+      const subtitles = {
+        1: 'Задайте мощность или ток двигателя и напряжение сети.',
+        2: 'Выберите автомат защиты GM2ME/GM3P и аксессуары по каталогу.',
+        3: 'Подберите контактор MC1E/MC1D и катушку управления.',
+        4: 'Выберите тепловое реле MRE/MRD, совместимое с контактором.',
+        5: 'Проверьте итоговый состав и скопируйте спецификацию.'
+      };
 
-      // Катушка
-      fillCoilVoltageOptions(); // на всякий случай
-      const family = document.getElementById("coilFamily").value;
-      const coilVoltage = document.getElementById("coilVoltage").value;
-      const coilSuffix = buildCoilSuffix(series, family, coilVoltage);
-      if (base) {
-        base.coilSuffix = coilSuffix;
-        if (coilSuffix) {
-          base.coilText = `Катушка управления: ${coilVoltage} В, код ${coilSuffix}, тип ${family}.`;
+      contentTitle.textContent = titles[step];
+      contentSubtitle.textContent = subtitles[step];
+      badgeText.textContent = 'Шаг ' + step + ' из 5';
+
+      prevStepBtn.disabled = step === 1;
+      if (step === 5) {
+        nextStepBtn.disabled = true;
+        nextStepBtn.textContent = 'Готово';
+      } else {
+        nextStepBtn.disabled = !canGoForwardFromStep(step);
+        nextStepBtn.textContent = 'Далее →';
+      }
+
+      if (step === 2) buildBreakerTable();
+      if (step === 3) buildContactorTable();
+      if (step === 4) buildRelayTable();
+      if (step === 5) buildSummary();
+
+      updateStepIndicators();
+    }
+
+    function changeStep(delta) {
+      const target = state.step + delta;
+      if (target < 1 || target > 5) return;
+      if (delta > 0 && !canGoForwardFromStep(state.step)) return;
+      state.step = target;
+      showStep(state.step);
+    }
+
+    function goToStep(n) {
+      if (n < 1 || n > 5) return;
+      if (n > state.step) return;
+      state.step = n;
+      showStep(state.step);
+    }
+
+    function updateStep1FromInputs() {
+      const valid = isStep1Valid();
+      nextStepBtn.disabled = !valid;
+      if (!valid) {
+        state.breaker = null;
+        state.contactor = null;
+        state.coilCode = null;
+        state.relay = null;
+      }
+    }
+
+    // --- шаг 1: события ---
+
+    supplyVoltageEl.addEventListener('change', () => {
+      const v = Number(supplyVoltageEl.value) || null;
+      state.supplyVoltage = v;
+      updateStep1FromInputs();
+    });
+
+    motorPowerEl.addEventListener('input', () => {
+      const val = parseFloat(motorPowerEl.value.replace(',', '.'));
+      state.motorPower = !isNaN(val) && val > 0 ? val : null;
+      updateStep1FromInputs();
+    });
+
+    motorCurrentEl.addEventListener('input', () => {
+      const val = parseFloat(motorCurrentEl.value.replace(',', '.'));
+      state.motorCurrent = !isNaN(val) && val > 0 ? val : null;
+      updateStep1FromInputs();
+    });
+
+    document.querySelectorAll('input[name="motorMode"]').forEach(r => {
+      r.addEventListener('change', () => {
+        const mode = document.querySelector('input[name="motorMode"]:checked').value;
+        if (mode === 'power') {
+          powerInputGroup.classList.remove('hidden');
+          currentInputGroup.classList.add('hidden');
+          motorCurrentEl.value = '';
+          state.motorCurrent = null;
         } else {
-          base.coilText = `Катушка управления: тип ${family}, напряжение не выбрано.`;
+          powerInputGroup.classList.add('hidden');
+          currentInputGroup.classList.remove('hidden');
+          state.motorCurrentEstimated = null;
+          currentEstimateHint.textContent = 'Введите ток двигателя, оценка по мощности не используется.';
         }
+        updateStep1FromInputs();
+      });
+    });
+
+    estimateCurrentBtn.addEventListener('click', () => {
+      if (!state.motorPower || !state.supplyVoltage) {
+        currentEstimateHint.textContent = 'Сначала задайте мощность двигателя и напряжение сети.';
+        return;
+      }
+      const I = computeEstimatedCurrent(state.motorPower, state.supplyVoltage);
+      state.motorCurrentEstimated = I;
+      currentEstimateHint.innerHTML =
+        'Оценочный ток двигателя: <strong>' + formatNumber(I, 2) +
+        ' А</strong> (I≈P/(√3·U·cosφ·η), cosφ≈0,8, η≈0,9).';
+      updateStep1FromInputs();
+    });
+
+    // --- шаг 2: автомат ---
+
+    const breakerAccessoryIds = [
+      'accGMAE11', 'accGMAE20', 'accGMAE02',
+      'accGMAN11', 'accGMAN20',
+      'accGMAD0101', 'accGMAD0110', 'accGMAD1001', 'accGMAD1010',
+      'accGMAM11', 'accGM2MC02', 'accGM1L3', 'accGM2APN01'
+    ];
+
+    function collectBreakerAccessories() {
+      const list = [];
+
+      function addIfChecked(id, code, desc) {
+        const el = document.getElementById(id);
+        if (el && el.checked) list.push({ code, desc });
       }
 
-      // Тепловое реле для контактора (опционально)
-      const addThermal = document.querySelector('input[name="addThermalToContactor"]:checked')?.value === "yes";
-      let thermalRelay = null;
-      if (addThermal && targetI) {
-        const thermalSeries = (series === "MC1E") ? "MRE" : "MRD";
-        thermalRelay = findThermalByCurrent(thermalSeries, targetI);
+      addIfChecked('accGMAE11', 'GMAE11', 'доп. контакты 1НО+1НЗ, фронтальный монтаж');
+      addIfChecked('accGMAE20', 'GMAE20', 'доп. контакты 2НО, фронтальный монтаж');
+      addIfChecked('accGMAE02', 'GMAE02', 'доп. контакты 2НЗ, фронтальный монтаж');
+      addIfChecked('accGMAN11', 'GMAN11', 'доп. контакты 1НО+1НЗ, боковой монтаж');
+      addIfChecked('accGMAN20', 'GMAN20', 'доп. контакты 2НО, боковой монтаж');
+
+      const gmaUSel = document.getElementById('accGMAU');
+      if (gmaUSel && gmaUSel.value) {
+        const map = {
+          'GMAU16B7': 'расцепитель минимального напряжения 110–127 В AC',
+          'GMAU16E7': 'расцепитель минимального напряжения 220–240 В AC'
+        };
+        list.push({ code: gmaUSel.value, desc: map[gmaUSel.value] || 'расцепитель минимального напряжения' });
       }
 
-      // Аксессуары контактора
-      const frontAux = document.getElementById("contactorFrontAux").value || null;
-      const sideAux = document.getElementById("contactorSideAux").value || null;
-      const timeOn = document.getElementById("timeOn").value || null;
-      const timeOff = document.getElementById("timeOff").value || null;
-      const surgeType = document.getElementById("surgeType").value || "";
-      const surgeVoltage = document.getElementById("surgeVoltage").value || "";
-      const mechLock38 = document.getElementById("mechLock38").checked;
-      const mechLock65 = document.getElementById("mechLock65").checked;
-
-      let surgeModule = null;
-      if (surgeType && surgeVoltage) {
-        if (surgeType === "VARISTOR") {
-          if (surgeVoltage === "24-48") surgeModule = "MAD4VE";
-          else if (surgeVoltage === "50-127") surgeModule = "MAD4VG";
-          else if (surgeVoltage === "110-250") surgeModule = "MAD4VU";
-          else if (surgeVoltage === "380-440") surgeModule = "MAD4VN";
-        } else if (surgeType === "RC") {
-          if (surgeVoltage === "24-48") surgeModule = "MAD4RCE";
-          else if (surgeVoltage === "50-127") surgeModule = "MAD4RCG";
-          else if (surgeVoltage === "110-250") surgeModule = "MAD4RCU";
-          else if (surgeVoltage === "380-440") surgeModule = "MAD4RCN";
-        }
+      const gmasSel = document.getElementById('accGMAS');
+      if (gmasSel && gmasSel.value) {
+        const map2 = {
+          'GMAS16B7': 'независимый расцепитель 110–127 В AC',
+          'GMAS16E7': 'независимый расцепитель 220–240 В AC'
+        };
+        list.push({ code: gmasSel.value, desc: map2[gmasSel.value] || 'независимый расцепитель' });
       }
 
-      accessories = {
-        contactorFrontAux: frontAux,
-        contactorSideAux: sideAux,
-        timeOn: timeOn,
-        timeOff: timeOff,
-        surgeModule: surgeModule,
-        mechLock38: mechLock38,
-        mechLock65: mechLock65,
-        thermalRelay: thermalRelay
-      };
-    } else if (deviceType === "thermal") {
-      const series = document.getElementById("thermalSeries").value;
-      base = findThermalByCurrent(series, targetI);
+      addIfChecked('accGMAD0101', 'GMAD0101', 'доп. блок контактов + сигнал отключения');
+      addIfChecked('accGMAD0110', 'GMAD0110', 'доп. блок контактов + сигнал отключения');
+      addIfChecked('accGMAD1001', 'GMAD1001', 'доп. блок контактов + сигнал КЗ');
+      addIfChecked('accGMAD1010', 'GMAD1010', 'доп. блок контактов + сигнал КЗ');
+      addIfChecked('accGMAM11', 'GMAM11', 'контакт сигнализации короткого замыкания');
 
-      const mount = document.querySelector('input[name="thermalMount"]:checked')?.value || "direct";
-      accessories = {
-        thermalMount: mount
-      };
+      const gm2gSel = document.getElementById('accGM2G');
+      if (gm2gSel && gm2gSel.value) {
+        const map3 = {
+          'GM2G245': 'комплект трёхполюсных шин 2×45 мм²',
+          'GM2G345': 'комплект трёхполюсных шин 3×45 мм²',
+          'GM2G545': 'комплект трёхполюсных шин 5×45 мм²'
+        };
+        list.push({ code: gm2gSel.value, desc: map3[gm2gSel.value] || 'комплект трёхполюсных шин' });
+      }
+
+      const gm2afSel = document.getElementById('accGM2AF');
+      if (gm2afSel && gm2afSel.value) {
+        const map4 = {
+          'GM2AF318E': 'соединительный блок между GM2ME и MC1D 9–18 А',
+          'GM2AF338E': 'соединительный блок между GM2ME и MC1D 25–38 А',
+          'GM2AF3': 'соединительный блок между GM2ME и MC1E 9–38 А'
+        };
+        list.push({ code: gm2afSel.value, desc: map4[gm2afSel.value] || 'соединительный блок между автоматом и контактором' });
+      }
+
+      addIfChecked('accGM2MC02', 'GM2MC02', 'защитный корпус для автомата');
+      addIfChecked('accGM1L3', 'GM1L3', 'ограничитель тока короткого замыкания');
+      addIfChecked('accGM2APN01', 'GM2APN01', 'чёрная выносная рукоятка');
+
+      state.breakerAccessories = list;
     }
 
-    state.baseDevice = base;
-    state.accessories = accessories;
+    breakerAccessoryIds.forEach(id => {
+      const el = document.getElementById(id);
+      if (el) el.addEventListener('change', collectBreakerAccessories);
+    });
+    ['accGMAU', 'accGMAS', 'accGM2G', 'accGM2AF'].forEach(id => {
+      const el = document.getElementById(id);
+      if (el) el.addEventListener('change', collectBreakerAccessories);
+    });
 
-    renderBaseDeviceCard();
-    renderBOM();
-  }
+    function buildBreakerTable() {
+      breakerTableBody.innerHTML = '';
+      const I = getMotorCurrent();
+      const P = state.motorPower;
+      const all = gm2meBreakers.concat(gm3pBreakers);
 
-  // --- ИНИЦИАЛИЗАЦИЯ СЛУШАТЕЛЕЙ ---------------------------------------------
+      let bestIndex = -1;
+      let bestScore = -1;
 
-  document.addEventListener("DOMContentLoaded", () => {
-    // Выбор типа устройства
-    document.querySelectorAll('input[name="deviceType"]').forEach(input => {
-      input.addEventListener("change", () => {
-        setDeviceType(input.value);
-        markDeviceTypeChips(input.value);
+      all.forEach((b, index) => {
+        let score = 0;
+        if (I && I >= b.irMin && I <= b.irMax) score += 2;
+        if (P && b.p400 && P <= b.p400) score += 1;
+        if (score > bestScore) {
+          bestScore = score;
+          bestIndex = index;
+        } else if (score === bestScore && score > 0 && b.irMax < all[bestIndex].irMax) {
+          bestIndex = index;
+        }
+      });
+
+      all.forEach((b, index) => {
+        const tr = document.createElement('tr');
+        if (index === bestIndex && bestScore > 0) tr.classList.add('recommended');
+
+        const matchTags = [];
+        if (I && I >= b.irMin && I <= b.irMax) {
+          matchTags.push('<span class="tag-inline tag-inline--ok">по току</span>');
+        }
+        if (P && b.p400 && P <= b.p400) {
+          matchTags.push('<span class="tag-inline tag-inline--ok">по мощности</span>');
+        }
+        if (matchTags.length === 0) {
+          matchTags.push('<span class="tag-inline tag-inline--warn">нужно проверить</span>');
+        }
+
+        const isSelected = state.breaker && state.breaker.code === b.code;
+
+        tr.innerHTML =
+          '<td><input type="radio" name="breakerOption" value="' + b.code + '" ' +
+          (isSelected ? 'checked' : '') + '></td>' +
+          '<td>' + b.series + '</td>' +
+          '<td>' + b.code + '</td>' +
+          '<td>' + formatNumber(b.irMin, 2) + '–' + formatNumber(b.irMax, 2) + '</td>' +
+          '<td>' + formatNumber(b.In, 0) + '</td>' +
+          '<td>' + (b.p400 ? formatNumber(b.p400, 1) : '—') + '</td>' +
+          '<td>' + matchTags.join(' ') + '</td>';
+
+        tr.querySelector('input[type="radio"]').addEventListener('change', () => {
+          state.breaker = b;
+          showStep(state.step);
+        });
+
+        breakerTableBody.appendChild(tr);
+      });
+
+      if (!state.breaker && bestIndex >= 0) {
+        state.breaker = all[bestIndex];
+        const radios = breakerTableBody.querySelectorAll('input[type="radio"]');
+        if (radios[bestIndex]) radios[bestIndex].checked = true;
+      }
+
+      nextStepBtn.disabled = !canGoForwardFromStep(2);
+    }
+
+    // --- шаг 3: контактор ---
+
+    function getContactorArrayForSeries(series) {
+      return series === 'MC1D' ? contactorsMC1D : contactorsMC1E;
+    }
+
+    function buildContactorTable() {
+      contactorTableBody.innerHTML = '';
+      const series = state.contactorSeries || 'MC1E';
+      const arr = getContactorArrayForSeries(series);
+      const I = getMotorCurrent();
+      const P = state.motorPower;
+
+      let bestIndex = -1;
+      let bestScore = -1;
+
+      arr.forEach((c, index) => {
+        let score = 0;
+        if (I && I <= c.Ie) score += 2;
+        if (P && P <= c.p400) score += 1;
+        if (score > bestScore) {
+          bestScore = score;
+          bestIndex = index;
+        } else if (score === bestScore && score > 0 && c.Ie < arr[bestIndex].Ie) {
+          bestIndex = index;
+        }
+      });
+
+      arr.forEach((c, index) => {
+        const tr = document.createElement('tr');
+        if (index === bestIndex && bestScore > 0) tr.classList.add('recommended');
+
+        const matchTags = [];
+        if (I && I <= c.Ie) matchTags.push('<span class="tag-inline tag-inline--ok">по току</span>');
+        if (P && P <= c.p400) matchTags.push('<span class="tag-inline tag-inline--ok">по мощности</span>');
+        if (matchTags.length === 0) matchTags.push('<span class="tag-inline tag-inline--warn">нужно проверить</span>');
+
+        const isSelected = state.contactor && state.contactor.code === c.code;
+
+        tr.innerHTML =
+          '<td><input type="radio" name="contactorOption" value="' + c.code + '" ' +
+          (isSelected ? 'checked' : '') + '></td>' +
+          '<td>' + c.series + '</td>' +
+          '<td>' + c.code + '</td>' +
+          '<td>' + formatNumber(c.Ie, 0) + '</td>' +
+          '<td>' + formatNumber(c.p400, 1) + '</td>' +
+          '<td>2 встроенных контакта 1НО+1НЗ</td>' +
+          '<td>' + matchTags.join(' ') + '</td>';
+
+        tr.querySelector('input[type="radio"]').addEventListener('change', () => {
+          state.contactor = c;
+          if (state.coilCode) {
+            coilHint.innerHTML = 'Полный код контактора: <strong>' + c.code + state.coilCode + '</strong>.';
+          }
+          showStep(state.step);
+        });
+
+        contactorTableBody.appendChild(tr);
+      });
+
+      if (!state.contactor && bestIndex >= 0) {
+        state.contactor = arr[bestIndex];
+        const radios = contactorTableBody.querySelectorAll('input[type="radio"]');
+        if (radios[bestIndex]) radios[bestIndex].checked = true;
+      }
+
+      nextStepBtn.disabled = !canGoForwardFromStep(3);
+    }
+
+    document.querySelectorAll('input[name="contactorSeries"]').forEach(r => {
+      r.addEventListener('change', () => {
+        const val = document.querySelector('input[name="contactorSeries"]:checked').value;
+        state.contactorSeries = val;
+        state.contactor = null;
+        state.coilCode = null;
+        coilVoltageSelect.value = '';
+        buildContactorTable();
+        showStep(state.step);
       });
     });
 
-    // Способ подбора (мощность / ток)
-    document.querySelectorAll('input[name="calcMode"]').forEach(input => {
-      input.addEventListener("change", () => {
-        updateCalcModeVisibility();
-        markCalcModeChips(input.value);
-        updateConfiguration();
+    coilVoltageSelect.addEventListener('change', () => {
+      const val = coilVoltageSelect.value || null;
+      state.coilCode = val;
+      if (state.contactor && val) {
+        coilHint.innerHTML = 'Полный код контактора: <strong>' + state.contactor.code + val + '</strong>.';
+      } else {
+        coilHint.textContent = 'Полный код контактора формируется как MC1E09M7, MC1D25BNE и т.п.';
+      }
+      nextStepBtn.disabled = !canGoForwardFromStep(3);
+    });
+
+    function collectContactorAccessories() {
+      const list = [];
+
+      function addIfChecked(id, code, desc) {
+        const el = document.getElementById(id);
+        if (el && el.checked) list.push({ code, desc });
+      }
+
+      addIfChecked('accFrontMC', 'MAFN11 / MADN11', 'доп. блок контактов 1НО+1НЗ фронтального монтажа');
+      addIfChecked('accFrontMC20', 'MAFN20 / MADN20', 'доп. блок контактов 2НО фронтального монтажа');
+      addIfChecked('accFrontMC02', 'MAFN02 / MADN02', 'доп. блок контактов 2НЗ фронтального монтажа');
+      addIfChecked('accSideMC', 'MASN11 / MAD8N11', 'доп. блок контактов 1НО+1НЗ бокового монтажа');
+      addIfChecked('accSideMC20', 'MAD8N20', 'доп. блок контактов 2НО бокового монтажа');
+      addIfChecked('accSideMC02', 'MAD8N02', 'доп. блок контактов 2НЗ бокового монтажа');
+
+      const timeSel = document.getElementById('accTimeBlock');
+      if (timeSel && timeSel.value) {
+        const map = {
+          MADT0: 'доп. блок с выдержкой времени 0,1–3 с на срабатывание',
+          MADT2: 'доп. блок с выдержкой времени 0,1–30 с на срабатывание',
+          MADT4: 'доп. блок с выдержкой времени 10–180 с на срабатывание',
+          MADR0: 'доп. блок с выдержкой времени 0,1–3 с на отпускание',
+          MADR2: 'доп. блок с выдержкой времени 0,1–30 с на отпускание',
+          MADR4: 'доп. блок с выдержкой времени 10–180 с на отпускание',
+          MTD420: 'доп. блок с выдержкой времени 0,1–3 с (MC1E)',
+          MTD422: 'доп. блок с выдержкой времени 0,1–30 с (MC1E)',
+          MTD424: 'доп. блок с выдержкой времени 10–180 с (MC1E)'
+        };
+        list.push({ code: timeSel.value, desc: map[timeSel.value] || 'доп. блок с выдержкой времени' });
+      }
+
+      const surgeSel = document.getElementById('accSurgeBlock');
+      if (surgeSel && surgeSel.value) {
+        const map2 = {
+          MAD4VE: 'варистор 24–48 В AC/DC для катушки MC1D',
+          MAD4VG: 'варистор 50–127 В AC/DC для катушки MC1D',
+          MAD4VU: 'варистор 110–250 В AC/DC для катушки MC1D',
+          MAD4VN: 'варистор 380–440 В AC/DC для катушки MC1D',
+          MAD4RCE: 'RC-цепь 24–48 В AC для катушки MC1D',
+          MAD4RCG: 'RC-цепь 50–127 В AC для катушки MC1D',
+          MAD4RCU: 'RC-цепь 110–250 В AC для катушки MC1D',
+          MAD4RCN: 'RC-цепь 380–440 В AC для катушки MC1D',
+          MA181RC: 'RC-ограничитель 24–48 В для катушки MC1E',
+          MA182RC: 'RC-ограничитель 110–240 В для катушки MC1E',
+          MA184RC: 'RC-ограничитель 380–440 В для катушки MC1E'
+        };
+        list.push({ code: surgeSel.value, desc: map2[surgeSel.value] || 'ограничитель коммутационных перенапряжений катушки' });
+      }
+
+      addIfChecked('accMA1M', 'MA1M38 / MA1M65', 'устройство механической блокировки двух контакторов MC1D');
+      addIfChecked('accMA6DK10', 'MA6DK10**', 'модуль защиты катушки управляющего напряжения MC1D');
+
+      state.contactorAccessories = list;
+    }
+
+    ['accFrontMC','accFrontMC20','accFrontMC02','accSideMC','accSideMC20','accSideMC02','accMA1M','accMA6DK10']
+      .forEach(id => {
+        const el = document.getElementById(id);
+        if (el) el.addEventListener('change', collectContactorAccessories);
+      });
+    ['accTimeBlock','accSurgeBlock'].forEach(id => {
+      const el = document.getElementById(id);
+      if (el) el.addEventListener('change', collectContactorAccessories);
+    });
+
+    // --- шаг 4: реле ---
+
+    document.querySelectorAll('input[name="relaySeries"]').forEach(r => {
+      r.addEventListener('change', () => {
+        state.relaySeriesMode = document.querySelector('input[name="relaySeries"]:checked').value;
+        state.relay = null;
+        buildRelayTable();
+        showStep(state.step);
       });
     });
 
-    // Изменения полей мощности/тока
-    document.getElementById("motorPower").addEventListener("input", updateConfiguration);
-    document.getElementById("supplyVoltage").addEventListener("change", updateConfiguration);
-    document.getElementById("lineCurrent").addEventListener("input", updateConfiguration);
+    function buildRelayTable() {
+      relayTableBody.innerHTML = '';
+      const series = resolveRelaySeries();
+      const I = getMotorCurrent();
+      const baseArr = series === 'MRD' ? thermalRelaysMRD : thermalRelaysMRE;
 
-    // Настройки автомата
-    document.getElementById("breakerSeries").addEventListener("change", updateConfiguration);
-    document.querySelectorAll('input[name="breakerFrame"]').forEach(input => {
-      input.addEventListener("change", () => {
-        markRadioChipGroup("breakerFrame");
-        updateConfiguration();
+      let bestIndex = -1;
+      let bestScore = -1;
+
+      baseArr.forEach((r, index) => {
+        let score = 0;
+        if (I && I >= r.irMin && I <= r.irMax) score += 2;
+        if (!I && state.contactor && state.contactor.Ie >= r.irMin && state.contactor.Ie <= r.irMax) score += 1;
+        if (score > bestScore) {
+          bestScore = score;
+          bestIndex = index;
+        } else if (score === bestScore && score > 0 && r.irMax < baseArr[bestIndex].irMax) {
+          bestIndex = index;
+        }
       });
-    });
 
-    // Аксессуары автомата
-    document.getElementById("breakerFrontAux").addEventListener("change", updateConfiguration);
-    document.getElementById("breakerSideAuxCount").addEventListener("change", () => {
-      updateSideAuxVisibility();
-      updateConfiguration();
-    });
-    document.getElementById("breakerSideAux1").addEventListener("change", updateConfiguration);
-    document.getElementById("breakerSideAux2").addEventListener("change", updateConfiguration);
-    document.getElementById("breakerFaultContacts").addEventListener("change", updateConfiguration);
-    document.getElementById("uvRelease").addEventListener("change", () => {
-      updateUvShuntConflict();
-      updateConfiguration();
-    });
-    document.getElementById("shuntTrip").addEventListener("change", () => {
-      updateUvShuntConflict();
-      updateConfiguration();
-    });
-    document.getElementById("busbar").addEventListener("change", updateConfiguration);
-    document.getElementById("linkBlock").addEventListener("change", updateConfiguration);
-    document.getElementById("breakerEnclosure").addEventListener("change", updateConfiguration);
-    document.getElementById("breakerLimiter").addEventListener("change", updateConfiguration);
-    document.getElementById("breakerBlackHandle").addEventListener("change", updateConfiguration);
+      baseArr.forEach((r, index) => {
+        const tr = document.createElement('tr');
+        if (index === bestIndex && bestScore > 0) tr.classList.add('recommended');
 
-    // Контактор
-    document.getElementById("contactorSeries").addEventListener("change", () => {
-      fillCoilVoltageOptions();
-      updateConfiguration();
-    });
-    document.getElementById("contactorCategory").addEventListener("change", updateConfiguration);
-    document.getElementById("coilFamily").addEventListener("change", () => {
-      fillCoilVoltageOptions();
-      updateConfiguration();
-    });
-    document.getElementById("coilVoltage").addEventListener("change", updateConfiguration);
-    document.querySelectorAll('input[name="addThermalToContactor"]').forEach(input => {
-      input.addEventListener("change", () => {
-        markRadioChipGroup("addThermalToContactor");
-        updateConfiguration();
+        const matchTags = [];
+        if (I && I >= r.irMin && I <= r.irMax) {
+          matchTags.push('<span class="tag-inline tag-inline--ok">по току двигателя</span>');
+        }
+        if (state.contactor && r.compatible.includes('MC1D') && state.contactor.series === 'MC1D') {
+          matchTags.push('<span class="tag-inline tag-inline--ok">по серии MC1D</span>');
+        }
+        if (state.contactor && r.compatible.includes('MC1E') && state.contactor.series === 'MC1E') {
+          matchTags.push('<span class="tag-inline tag-inline--ok">по серии MC1E</span>');
+        }
+        if (matchTags.length === 0) {
+          matchTags.push('<span class="tag-inline tag-inline--warn">нужно проверить</span>');
+        }
+
+        const isSelected = state.relay && state.relay.code === r.code;
+
+        tr.innerHTML =
+          '<td><input type="radio" name="relayOption" value="' + r.code + '" ' +
+          (isSelected ? 'checked' : '') + '></td>' +
+          '<td>' + r.series + '</td>' +
+          '<td>' + r.code + '</td>' +
+          '<td>' + formatNumber(r.irMin, 2) + '–' + formatNumber(r.irMax, 2) + ' А</td>' +
+          '<td>' + r.compatible + '</td>' +
+          '<td>' + matchTags.join(' ') + '</td>';
+
+        tr.querySelector('input[type="radio"]').addEventListener('change', () => {
+          state.relay = r;
+          nextStepBtn.disabled = !canGoForwardFromStep(4);
+        });
+
+        relayTableBody.appendChild(tr);
       });
-    });
 
-    // Аксессуары контактора
-    document.getElementById("contactorFrontAux").addEventListener("change", updateConfiguration);
-    document.getElementById("contactorSideAux").addEventListener("change", updateConfiguration);
-    document.getElementById("timeOn").addEventListener("change", updateConfiguration);
-    document.getElementById("timeOff").addEventListener("change", updateConfiguration);
-    document.getElementById("surgeType").addEventListener("change", updateConfiguration);
-    document.getElementById("surgeVoltage").addEventListener("change", updateConfiguration);
-    document.getElementById("mechLock38").addEventListener("change", updateConfiguration);
-    document.getElementById("mechLock65").addEventListener("change", updateConfiguration);
+      if (!state.relay && bestIndex >= 0) {
+        state.relay = baseArr[bestIndex];
+        const radios = relayTableBody.querySelectorAll('input[type="radio"]');
+        if (radios[bestIndex]) radios[bestIndex].checked = true;
+      }
 
-    // Тепловые реле
-    document.getElementById("thermalSeries").addEventListener("change", updateConfiguration);
-    document.getElementById("thermalContactorRef").addEventListener("change", updateConfiguration);
-    document.querySelectorAll('input[name="thermalMount"]').forEach(input => {
-      input.addEventListener("change", () => {
-        markRadioChipGroup("thermalMount");
-        updateConfiguration();
-      });
-    });
+      nextStepBtn.disabled = !canGoForwardFromStep(4);
+    }
 
-    // Кнопки действий
-    document.getElementById("copySpecBtn").addEventListener("click", async () => {
-      const text = buildSpecTextForClipboard();
-      if (!text) return;
+    // --- шаг 5: спецификация ---
+
+    function buildSummary() {
+      collectBreakerAccessories();
+      collectContactorAccessories();
+
+      const lines = [];
+      const I = getMotorCurrent();
+
+      lines.push('Исходные данные двигателя:');
+      lines.push('  • Напряжение сети: 3~ ' + (state.supplyVoltage || '—') + ' В, 50 Гц (AC-3)');
+      lines.push('  • Мощность двигателя Pн: ' + (state.motorPower ? formatNumber(state.motorPower, 1) + ' кВт' : 'не задана'));
+      if (state.motorCurrent) {
+        lines.push('  • Номинальный ток двигателя Iн: ' + formatNumber(state.motorCurrent, 2) + ' А (задан пользователем)');
+      } else if (state.motorCurrentEstimated) {
+        lines.push('  • Оценочный ток двигателя I≈: ' + formatNumber(state.motorCurrentEstimated, 2) + ' А (оценка по мощности)');
+      } else {
+        lines.push('  • Ток двигателя: —');
+      }
+      lines.push('');
+
+      if (state.breaker) {
+        lines.push('Автоматический выключатель защиты двигателя:');
+        lines.push('  • Тип: ' + state.breaker.code + ' (' + state.breaker.series + ')');
+        lines.push('  • Диапазон уставок Ir: ' +
+          formatNumber(state.breaker.irMin, 2) + '–' + formatNumber(state.breaker.irMax, 2) + ' А');
+        lines.push('  • Номинальный ток In: ' + formatNumber(state.breaker.In, 0) + ' А');
+        if (state.breaker.p400) {
+          lines.push('  • Номинальная мощность двигателя при 400 В: до ' + formatNumber(state.breaker.p400, 1) + ' кВт');
+        }
+        if (state.breakerAccessories.length) {
+          lines.push('  • Аксессуары автомата:');
+          state.breakerAccessories.forEach(a => {
+            lines.push('    – ' + a.code + ' · ' + a.desc);
+          });
+        }
+        lines.push('');
+      }
+
+      if (state.contactor) {
+        const fullCode = state.coilCode ? state.contactor.code + state.coilCode : state.contactor.code;
+        lines.push('Контактор для управления двигателем:');
+        lines.push('  • Тип: ' + fullCode + ' (' + state.contactor.series + ')');
+        lines.push('  • Номинальный ток Ie AC-3 400 В: ' + formatNumber(state.contactor.Ie, 0) + ' А');
+        lines.push('  • Номинальная мощность двигателя при 400 В: до ' + formatNumber(state.contactor.p400, 1) + ' кВт');
+        if (state.coilCode) {
+          lines.push('  • Код катушки управления: ' + state.coilCode);
+        }
+        if (state.contactorAccessories.length) {
+          lines.push('  • Аксессуары контактора:');
+          state.contactorAccessories.forEach(a => {
+            lines.push('    – ' + a.code + ' · ' + a.desc);
+          });
+        }
+        lines.push('');
+      }
+
+      if (state.relay) {
+        lines.push('Тепловое реле перегрузки:');
+        lines.push('  • Тип: ' + state.relay.code + ' (' + state.relay.series +
+          ', серия ' + (state.relay.family || '') + ')');
+        lines.push('  • Диапазон уставок: ' +
+          formatNumber(state.relay.irMin, 2) + '–' + formatNumber(state.relay.irMax, 2) + ' А');
+        lines.push('  • Совместимые контакторы: ' + state.relay.compatible);
+        lines.push('');
+      }
+
+      lines.push('Примечания:');
+      lines.push('  • Подбор Iреле и Iавтомата выполнен с учётом диапазонов уставок и таблиц мощности/тока каталога SystemePact-M.');
+      lines.push('  • Перед выпуском проектной документации проверьте выбранные значения по каталогу и требованиям схемы.');
+
+      summaryTextEl.textContent = lines.join('\n');
+
+      summaryTableBody.innerHTML = '';
+
+      function addRow(name, value) {
+        const tr = document.createElement('tr');
+        tr.innerHTML = '<th>' + name + '</th><td>' + (value || '—') + '</td>';
+        summaryTableBody.appendChild(tr);
+      }
+
+      addRow('Сеть', '3~ ' + (state.supplyVoltage || '—') + ' В, 50 Гц');
+      addRow('Двигатель, кВт', state.motorPower ? formatNumber(state.motorPower, 1) + ' кВт' : '—');
+      if (I) addRow('Ток двигателя, А', formatNumber(I, 2) + ' А');
+
+      if (state.breaker) {
+        addRow('Автомат двигателя', state.breaker.code + ' (' + state.breaker.series + '), Ir ' +
+          formatNumber(state.breaker.irMin, 2) + '–' + formatNumber(state.breaker.irMax, 2) + ' А');
+      }
+
+      if (state.contactor) {
+        addRow('Контактор', (state.coilCode ? state.contactor.code + state.coilCode : state.contactor.code) +
+          ' (' + state.contactor.series + '), Ie ' + formatNumber(state.contactor.Ie, 0) + ' А');
+      }
+
+      if (state.relay) {
+        addRow('Тепловое реле', state.relay.code + ' (' + state.relay.series + '), ' +
+          formatNumber(state.relay.irMin, 2) + '–' + formatNumber(state.relay.irMax, 2) + ' А');
+      }
+
+      if (state.breakerAccessories.length || state.contactorAccessories.length) {
+        const ul = document.createElement('ul');
+        ul.className = 'summary-accessories-list';
+        state.breakerAccessories.forEach(a => {
+          const li = document.createElement('li');
+          li.textContent = a.code + ' · ' + a.desc;
+          ul.appendChild(li);
+        });
+        state.contactorAccessories.forEach(a => {
+          const li = document.createElement('li');
+          li.textContent = a.code + ' · ' + a.desc;
+          ul.appendChild(li);
+        });
+        const tr = document.createElement('tr');
+        tr.innerHTML = '<th>Аксессуары</th>';
+        const td = document.createElement('td');
+        td.appendChild(ul);
+        tr.appendChild(td);
+        summaryTableBody.appendChild(tr);
+      }
+    }
+
+    copySummaryBtn.addEventListener('click', async () => {
       try {
-        if (navigator.clipboard && navigator.clipboard.writeText) {
-          await navigator.clipboard.writeText(text);
-          alert("Спецификация скопирована в буфер обмена в формате CSV.");
-        } else {
-          // Фолбэк
-          const ta = document.createElement("textarea");
-          ta.value = text;
-          document.body.appendChild(ta);
-          ta.select();
-          document.execCommand("copy");
-          document.body.removeChild(ta);
-          alert("Спецификация скопирована в буфер обмена.");
-        }
-      } catch (e) {
-        alert("Не удалось скопировать спецификацию: " + e);
+        await navigator.clipboard.writeText(summaryTextEl.textContent || '');
+        copySummaryBtn.textContent = 'Скопировано ✓';
+        setTimeout(() => {
+          copySummaryBtn.textContent = 'Копировать спецификацию';
+        }, 1600);
+      } catch {
+        copySummaryBtn.textContent = 'Не удалось скопировать';
+        setTimeout(() => {
+          copySummaryBtn.textContent = 'Копировать спецификацию';
+        }, 1600);
       }
     });
 
-    document.getElementById("exportCsvBtn").addEventListener("click", downloadSpecCsv);
+    resetConfigBtn.addEventListener('click', () => {
+      supplyVoltageEl.value = '400';
+      motorPowerEl.value = '';
+      motorCurrentEl.value = '';
 
-    document.getElementById("fakeCartBtn").addEventListener("click", () => {
-      const rows = buildSpecificationRows();
-      if (!rows.length) return;
-      alert("Здесь будет интеграция с API корзины systeme.ru/dek.ru.\nСейчас формируется спецификация из " + rows.length + " позиций.");
+      state.step = 1;
+      state.supplyVoltage = 400;
+      state.motorPower = null;
+      state.motorCurrent = null;
+      state.motorCurrentEstimated = null;
+      state.breaker = null;
+      state.breakerAccessories = [];
+      state.contactorSeries = 'MC1E';
+      state.contactor = null;
+      state.coilCode = null;
+      state.contactorAccessories = [];
+      state.relaySeriesMode = 'auto';
+      state.relay = null;
+
+      coilVoltageSelect.value = '';
+
+      const motorModePower = document.querySelector('input[name="motorMode"][value="power"]');
+      if (motorModePower) motorModePower.checked = true;
+      powerInputGroup.classList.remove('hidden');
+      currentInputGroup.classList.add('hidden');
+
+      breakerAccessoryIds.forEach(id => {
+        const el = document.getElementById(id);
+        if (el) el.checked = false;
+      });
+      ['accGMAU','accGMAS','accGM2G','accGM2AF','accTimeBlock','accSurgeBlock'].forEach(id => {
+        const el = document.getElementById(id);
+        if (el) el.value = '';
+      });
+      ['accFrontMC','accFrontMC20','accFrontMC02','accSideMC','accSideMC20','accSideMC02','accMA1M','accMA6DK10']
+        .forEach(id => {
+          const el = document.getElementById(id);
+          if (el) el.checked = false;
+        });
+
+      currentEstimateHint.textContent =
+        'Если известна только мощность, можно оценить ток: I≈P/(√3·U·cosφ·η) при cosφ≈0,8 и η≈0,9.';
+
+      showStep(state.step = 1);
     });
 
-    // Начальные значения
-    fillCoilVoltageOptions();
-    updateSideAuxVisibility();
-    updateUvShuntConflict();
-    updateCalcModeVisibility();
+    prevStepBtn.addEventListener('click', () => changeStep(-1));
+    nextStepBtn.addEventListener('click', () => {
+      if (!canGoForwardFromStep(state.step)) return;
+      changeStep(1);
+    });
 
-    // Первое построение
-    updateConfiguration();
-  });
+    stepItems.forEach((item, index) => {
+      item.addEventListener('click', () => {
+        const n = index + 1;
+        goToStep(n);
+      });
+    });
+
+    showStep(state.step);
+  })();
 </script>
 </body>
 </html>
