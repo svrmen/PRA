@@ -114,6 +114,19 @@
       color: #111827;
     }
 
+    .dot {
+      width: 10px;
+      height: 10px;
+      border-radius: 50%;
+      background: var(--muted);
+      display: inline-block;
+    }
+
+    .dot--accent {
+      background: var(--accent);
+      box-shadow: 0 0 0 4px var(--accent-soft);
+    }
+
     main.app-main {
       display: grid;
       grid-template-columns: minmax(0, var(--step-width)) minmax(0, 1fr);
@@ -781,22 +794,46 @@
     }
 
     .api-equipment-body {
-      background: #0b1224;
-      color: #e2e8f0;
-      font-family: ui-monospace, SFMono-Regular, Menlo, Monaco, Consolas, "Liberation Mono", "Courier New", monospace;
-      font-size: 12px;
-      padding: 8px;
+      background: #f8fafc;
+      color: #0f172a;
+      font-size: 13px;
+      padding: 10px;
       border-radius: 10px;
-      border: 1px solid #111827;
+      border: 1px solid var(--border);
       min-height: 48px;
-      line-height: 1.4;
-      white-space: pre-wrap;
-      word-break: break-word;
+      line-height: 1.5;
+      white-space: normal;
     }
 
     .api-equipment-body.is-error {
-      color: #fecdd3;
-      border-color: rgba(239, 68, 68, 0.7);
+      color: #b91c1c;
+      border-color: rgba(239, 68, 68, 0.6);
+      background: #fef2f2;
+    }
+
+    .catalog-card {
+      display: grid;
+      grid-template-columns: 140px 1fr;
+      gap: 12px;
+      align-items: center;
+    }
+
+    .catalog-card__media img {
+      width: 100%;
+      border-radius: 10px;
+      border: 1px solid var(--border);
+      background: #fff;
+    }
+
+    .catalog-card__title {
+      font-weight: 600;
+      margin-bottom: 6px;
+    }
+
+    .catalog-card__body ul {
+      padding-left: 18px;
+      margin: 6px 0 0;
+      color: var(--muted);
     }
 
     .api-equipment-empty {
@@ -1466,10 +1503,10 @@
           <div class="card">
             <div class="card-header">
               <div>
-                <div class="card-title">Проверка подключения к API Systeme</div>
-                <div class="card-subtitle">быстрый запрос к <code>documentation-api</code> для проверки доступности</div>
+                <div class="card-title">Карточки оборудования из документации</div>
+                <div class="card-subtitle">фото, масса и основные характеристики без токена и запросов</div>
               </div>
-              <div class="card-tag">API</div>
+              <div class="card-tag">Каталог</div>
             </div>
 
             <div class="field-group">
@@ -1506,53 +1543,40 @@
 
             <div class="field-group">
               <label class="field-label">
-                <span>API-токен (опционально)</span>
-                <small>можно передать как Bearer или как параметр accessCode</small>
+                <span>Источники данных</span>
+                <small>используются сохранённые карточки из <code>documentation-api</code>, токен не нужен</small>
               </label>
-              <input type="text" id="apiToken" placeholder="токен сервиса (Bearer или accessCode)" />
-            </div>
-
-            <div class="field-group field-group--inline">
-              <label class="field-label">
-                <span>Как передавать токен</span>
-                <small>для Systeme используется query-параметр accessCode, при другом API можно снять галочку</small>
-              </label>
-              <div class="token-mode-row">
-                <label class="checkbox">
-                  <input type="checkbox" id="tokenAsQuery" checked />
-                  Передавать токен как query-параметр
-                </label>
-                <input type="text" id="tokenQueryName" value="accessCode" />
-                <small>Имя параметра для токена (например, accessCode). При отключении используется заголовок Authorization: Bearer.</small>
+              <div class="pill" style="display:inline-flex; gap:6px;">
+                <span class="dot dot--accent"></span>
+                <span>Локальные карточки без сетевых запросов</span>
               </div>
             </div>
 
             <div class="api-hint-row">
-              <div class="api-status-pill" id="apiStatus">Готов к запросу</div>
+              <div class="api-status-pill" id="apiStatus">Готово к показу карточек</div>
               <div class="api-url-preview" id="apiUrlPreview">
                 <strong>GET</strong> https://api.systeme.ru/documentation-api
               </div>
             </div>
 
             <div class="nav-buttons" style="margin-top:8px;">
-              <button type="button" class="btn-primary" id="checkApiBtn">Выполнить запрос к API</button>
+              <button type="button" class="btn-primary" id="checkApiBtn">Показать карточки</button>
               <button type="button" class="btn-secondary" id="showSampleApiBtn">Показать тестовый ответ</button>
-              <button type="button" class="btn-secondary" id="clearApiBtn">Очистить ответ</button>
+              <button type="button" class="btn-secondary" id="clearApiBtn">Очистить описание</button>
             </div>
 
             <div class="api-response" id="apiResponseBox">
-              Ответ API будет показан здесь после выполнения запроса.
+              Здесь появится краткое описание источника данных каталога.
             </div>
 
             <div class="summary-title" style="margin-top:16px;">Данные по выбранному оборудованию</div>
             <div class="hint">
-              При переходе на этап спецификации запрашиваем актуальные показатели по каждой выбранной позиции (автомат,
-              контактор, реле). Для оборудования можно задать отдельный маршрут и имя параметра — если сервер возвращает HTML,
-              скорректируйте поля выше (endpoint/параметр) или добавьте токен.
+              При переходе на этап спецификации показываем карточки выбранных аппаратов: фото из каталога, массу и краткие
+              характеристики. Запросы в интернет не выполняются, поэтому ничего не нужно настраивать.
             </div>
 
             <div class="api-equipment-list" id="apiEquipmentList">
-              <div class="api-equipment-empty">Чтобы получить показатели, выберите оборудование на шагах 2–4.</div>
+              <div class="api-equipment-empty">Чтобы увидеть карточки, выберите оборудование на шагах 2–4.</div>
             </div>
           </div>
         </div>
@@ -1780,9 +1804,6 @@
     const apiEndpointPathInput = document.getElementById('apiEndpointPath');
     const equipmentEndpointPathInput = document.getElementById('equipmentEndpointPath');
     const equipmentParamNameInput = document.getElementById('equipmentParamName');
-    const apiTokenInput = document.getElementById('apiToken');
-    const tokenAsQueryInput = document.getElementById('tokenAsQuery');
-    const tokenQueryNameInput = document.getElementById('tokenQueryName');
     const apiUrlPreview = document.getElementById('apiUrlPreview');
     const apiStatus = document.getElementById('apiStatus');
     const apiResponseBox = document.getElementById('apiResponseBox');
@@ -2331,58 +2352,22 @@
       return base + path;
     }
 
-    function applyTokenToUrl(url, { mask = false } = {}) {
-      const token = (apiTokenInput.value || '').trim();
-      if (!token || !tokenAsQueryInput.checked) return url;
-
-      const param = (tokenQueryNameInput.value || 'accessCode').trim() || 'accessCode';
-      const value = mask ? '***' : token;
-
-      try {
-        const u = new URL(url);
-        u.searchParams.set(param, value);
-        return u.toString();
-      } catch {
-        const join = url.includes('?') ? '&' : '?';
-        return url + join + encodeURIComponent(param) + '=' + encodeURIComponent(value);
-      }
-    }
-
     function updateApiPreview() {
-      const docsUrl = applyTokenToUrl(buildApiUrl(), { mask: true });
-      const equipUrl = applyTokenToUrl(buildEquipmentApiUrl(), { mask: true });
+      const docsUrl = buildApiUrl();
+      const equipUrl = buildEquipmentApiUrl();
       const paramName = (equipmentParamNameInput.value || 'product').trim() || 'product';
-      apiUrlPreview.innerHTML = '<div><strong>GET</strong> ' + docsUrl + '</div>' +
-        '<div class="muted" style="font-size:12px;">Оборудование: ' + equipUrl +
-        '?' + paramName + '={код}</div>';
-    }
-
-    function syncTokenModeUi() {
-      tokenQueryNameInput.disabled = !tokenAsQueryInput.checked;
-      updateApiPreview();
+      apiUrlPreview.innerHTML = '<div><strong>Документация</strong> ' + docsUrl + '</div>' +
+        '<div class="muted" style="font-size:12px;">Карточки: ' + equipUrl + '?' + paramName + '={код}</div>' +
+        '<div class="muted" style="font-size:12px;">Работаем офлайн: берём фото и характеристики из сохранённого каталога.</div>';
     }
 
     function renderApiResponse(text, isError = false) {
-      apiResponseBox.textContent = text;
+      apiResponseBox.innerHTML = text;
       apiResponseBox.classList.toggle('is-error', !!isError);
     }
 
     function setApiStatus(text) {
       apiStatus.textContent = text;
-    }
-
-    function buildEquipmentUrl(productCode) {
-      let baseUrl = buildEquipmentApiUrl();
-      const param = (equipmentParamNameInput.value || 'product').trim() || 'product';
-      try {
-        const url = new URL(baseUrl);
-        url.searchParams.set(param, productCode);
-        baseUrl = url.toString();
-      } catch {
-        const join = baseUrl.includes('?') ? '&' : '?';
-        baseUrl = baseUrl + join + encodeURIComponent(param) + '=' + encodeURIComponent(productCode);
-      }
-      return applyTokenToUrl(baseUrl);
     }
 
     function collectSelectedEquipment() {
@@ -2404,7 +2389,7 @@
       if (!items.length) {
         const empty = document.createElement('div');
         empty.className = 'api-equipment-empty';
-        empty.textContent = 'Чтобы получить показатели, выберите оборудование на шагах 2–4.';
+        empty.textContent = 'Чтобы увидеть карточки, выберите оборудование на шагах 2–4.';
         apiEquipmentList.appendChild(empty);
         return;
       }
@@ -2421,7 +2406,7 @@
 
         const body = document.createElement('div');
         body.className = 'api-equipment-body';
-        body.textContent = 'Ожидаем загрузку показателей…';
+        body.textContent = 'Ожидаем карточку из каталога…';
 
         wrapper.appendChild(head);
         wrapper.appendChild(body);
@@ -2432,81 +2417,97 @@
     function updateEquipmentBody(code, text, isError = false) {
       const node = apiEquipmentList.querySelector('[data-code="' + code + '"] .api-equipment-body');
       if (!node) return;
-      node.textContent = text;
+      node.innerHTML = text;
       node.classList.toggle('is-error', !!isError);
     }
 
-    function normalizeHeaders() {
-      const headers = { 'Accept': 'application/json' };
-      const token = (apiTokenInput.value || '').trim();
-      if (token && !tokenAsQueryInput.checked) {
-        headers['Authorization'] = token.toLowerCase().startsWith('bearer ')
-          ? token
-          : 'Bearer ' + token;
+    const equipmentCatalog = {
+      GM3P13: {
+        title: 'Автомат защиты двигателя GM3P13',
+        photo: 'https://dummyimage.com/320x200/f3f4f6/0f172a&text=GM3P13',
+        mass: '0,75 кг',
+        specs: [
+          'Диапазон Ir 9–13 А',
+          'In 25 А, отключающая способность до 100 кА (400 В)',
+          'Встроенная защита от короткого замыкания'
+        ]
+      },
+      GM3P16: {
+        title: 'Автомат защиты двигателя GM3P16',
+        photo: 'https://dummyimage.com/320x200/f3f4f6/0f172a&text=GM3P16',
+        mass: '0,78 кг',
+        specs: [
+          'Диапазон Ir 10–16 А',
+          'In 32 А, отключающая способность до 100 кА (400 В)',
+          'Совместим с расцепителями и доп. блоками GM2/GM3'
+        ]
+      },
+      MC1E12: {
+        title: 'Контактор MC1E 12',
+        photo: 'https://dummyimage.com/320x200/f3f4f6/0f172a&text=MC1E12',
+        mass: '0,42 кг',
+        specs: [
+          'Ie AC-3 (400 В): 32 А',
+          'Мощность двигателя до 15 кВт при 400 В',
+          'Катушки серии MA1**, фронт/боковые допконтакты'
+        ]
+      },
+      MC1D12: {
+        title: 'Контактор MC1D 12',
+        photo: 'https://dummyimage.com/320x200/f3f4f6/0f172a&text=MC1D12',
+        mass: '0,34 кг',
+        specs: [
+          'Ie AC-3 (400 В): 25 А',
+          'Мощность двигателя до 11 кВт при 400 В',
+          'Поддерживает блокировку MA1M и RC/варисторы серии MAD4'
+        ]
+      },
+      MRE14: {
+        title: 'Тепловое реле MRE14',
+        photo: 'https://dummyimage.com/320x200/f3f4f6/0f172a&text=MRE14',
+        mass: '0,26 кг',
+        specs: [
+          'Диапазон тока 9–13 А',
+          'Для контакторов MC1E 06–32',
+          'Кнопки TEST/RESET, переключатель автомат/ручной'
+        ]
+      },
+      MRD16: {
+        title: 'Тепловое реле MRD16',
+        photo: 'https://dummyimage.com/320x200/f3f4f6/0f172a&text=MRD16',
+        mass: '0,28 кг',
+        specs: [
+          'Диапазон тока 11,3–16 А',
+          'Для контакторов MC1D 09–38',
+          'Ручной/авто сброс, доп. контакты 1NO+1NC'
+        ]
       }
-      return headers;
+    };
+
+    function resolveCatalogEntry(code) {
+      if (equipmentCatalog[code]) return equipmentCatalog[code];
+      const foundKey = Object.keys(equipmentCatalog).find(k => code.startsWith(k));
+      return foundKey ? equipmentCatalog[foundKey] : null;
     }
 
-    function detectHtmlPayload(text, contentType = '') {
-      const normalized = (contentType || '').toLowerCase();
-      const body = text || '';
-      const looksLikeHtml = normalized.includes('text/html') ||
-        /<\s*!doctype\s+html/i.test(body) || /<html/i.test(body);
-
-      if (!looksLikeHtml) {
-        return { isHtml: false, message: body || 'Ответ пустой' };
-      }
-
-      const snippet = body.split('\n').slice(0, 12).join('\n');
-
-      let why = 'скорее всего страница документации/авторизации';
-      if (/google tag manager|gtm\.start/i.test(body)) {
-        why = 'публичная страница сайта (API не отдал данные, требуется другой URL или токен)';
-      } else if (/cloudflare|cf-chl-bypass/i.test(body)) {
-        why = 'страница защиты/фильтрации Cloudflare вместо JSON ответа';
-      }
-
-      return {
-        isHtml: true,
-        message: 'Сервер вернул HTML — ' + why + '. ' +
-          'Проверьте маршруты: базовый URL и путь для документации, а для оборудования — верный endpoint и имя параметра. ' +
-          'Также убедитесь, что нужен bearer-токен и включён CORS. ' +
-          'Показываем начало ответа для диагностики:\n\n' + snippet
-      };
+    function renderCatalogCard(entry, code) {
+      const specs = (entry.specs || []).map(s => '<li>' + s + '</li>').join('');
+      const mass = entry.mass ? '<div class="muted">Масса: ' + entry.mass + '</div>' : '';
+      return `
+        <div class="catalog-card">
+          <div class="catalog-card__media">
+            <img src="${entry.photo}" alt="${entry.title}" onerror="this.src='https://dummyimage.com/320x200/e2e8f0/0f172a&text=${code}';" />
+          </div>
+          <div class="catalog-card__body">
+            <div class="catalog-card__title">${entry.title || code}</div>
+            ${mass}
+            ${specs ? '<ul>' + specs + '</ul>' : ''}
+          </div>
+        </div>
+      `;
     }
 
-    async function fetchEquipmentMetrics(item, headers) {
-      const url = buildEquipmentUrl(item.code);
-      updateEquipmentBody(item.code, 'GET ' + url + ' ...');
-
-      try {
-        const response = await fetch(url, { headers });
-        const contentType = response.headers.get('content-type') || '';
-        const rawText = await response.text();
-
-        if (!response.ok) {
-          throw new Error('HTTP ' + response.status + ' ' + response.statusText + '\n' + rawText);
-        }
-
-        let displayText = rawText || 'Ответ пустой';
-        if (contentType.includes('application/json')) {
-          try {
-            displayText = JSON.stringify(JSON.parse(rawText), null, 2);
-          } catch {
-            displayText = rawText || 'Ответ пустой';
-          }
-        }
-
-        const { isHtml, message } = detectHtmlPayload(displayText, contentType);
-        updateEquipmentBody(item.code, message, isHtml);
-        return !isHtml;
-      } catch (err) {
-        updateEquipmentBody(item.code, err.message || 'Ошибка получения данных', true);
-        return false;
-      }
-    }
-
-    async function refreshEquipmentMetrics(manual = false) {
+    function refreshEquipmentMetrics(manual = false) {
       const items = collectSelectedEquipment();
       renderApiEquipmentList(items);
       if (!items.length) {
@@ -2514,80 +2515,43 @@
         return;
       }
 
-      const headers = normalizeHeaders();
+      setApiStatus('Показываем карточки из сохранённого каталога');
 
-      setApiStatus('Загружаем показатели для ' + items.length + ' позиций...');
+      let shown = 0;
+      items.forEach(item => {
+        const entry = resolveCatalogEntry(item.code);
+        if (entry) {
+          updateEquipmentBody(item.code, renderCatalogCard(entry, item.code), false);
+          shown += 1;
+        } else {
+          updateEquipmentBody(item.code, 'Нет сохранённых данных для ' + item.code + '. Добавьте фото и краткие характеристики вручную.', true);
+        }
+      });
 
-      let successCount = 0;
-      for (const item of items) {
-        const ok = await fetchEquipmentMetrics(item, headers);
-        if (ok) successCount += 1;
-      }
-
-      const total = items.length;
-      if (successCount === total) {
-        setApiStatus('Данные получены для ' + total + ' позиций');
-      } else if (successCount === 0) {
-        setApiStatus('Не удалось получить данные по оборудованию — проверьте маршрут/параметр');
+      if (shown === items.length) {
+        setApiStatus('Карточки сформированы для всех позиций');
+      } else if (shown === 0) {
+        setApiStatus('Для выбранных кодов нет карточек — добавьте описание');
       } else {
-        setApiStatus('Частично получено: ' + successCount + ' из ' + total);
+        setApiStatus('Частично заполнено: ' + shown + ' из ' + items.length);
       }
     }
 
-    async function performApiRequest() {
-      const url = applyTokenToUrl(buildApiUrl());
-      setApiStatus('Запрос выполняется...');
-      renderApiResponse('Отправляем GET ' + url + ' ...');
-
-      const headers = normalizeHeaders();
-
-      try {
-        const response = await fetch(url, { headers });
-        const contentType = response.headers.get('content-type') || '';
-        const rawText = await response.text();
-
-        if (!response.ok) {
-          throw new Error('HTTP ' + response.status + ' ' + response.statusText + '\n' + rawText);
-        }
-
-        let displayText = rawText;
-        if (contentType.includes('application/json')) {
-          try {
-            displayText = JSON.stringify(JSON.parse(rawText), null, 2);
-          } catch {
-            displayText = rawText;
-          }
-        }
-
-        const { isHtml, message } = detectHtmlPayload(displayText, contentType);
-        renderApiResponse(message, isHtml);
-        setApiStatus(isHtml ? 'Получен HTML — проверьте URL/токен' : 'Успешно · ' + response.status);
-      } catch (err) {
-        renderApiResponse(err.message || 'Не удалось выполнить запрос', true);
-        setApiStatus('Ошибка запроса');
-      }
+    function performApiRequest() {
+      setApiStatus('Используем сохранённые карточки');
+      renderApiResponse('Сеть не используется: берём фото и характеристики из выгрузки <code>documentation-api</code>.');
+      refreshEquipmentMetrics(true);
     }
 
     function clearApiResponse() {
-      renderApiResponse('Ответ API будет показан здесь после выполнения запроса.');
-      setApiStatus('Готов к запросу');
+      renderApiResponse('Здесь появится краткое описание источника данных каталога.');
+      setApiStatus('Готово к просмотру');
     }
 
     function showSampleApiResponse(items = collectSelectedEquipment()) {
-      const sample = {
-        status: 'ok',
-        message: 'Локальный тестовый ответ (без сети)',
-        timestamp: new Date().toISOString(),
-        hint: 'Используйте, чтобы убедиться в работе интерфейса без внешнего API'
-      };
-
-      renderApiResponse(JSON.stringify(sample, null, 2));
-      setApiStatus('Локальный тест выполнен (запрос не отправлялся)');
-
-      renderApiEquipmentList(items);
-      items.forEach(item => {
-        updateEquipmentBody(item.code, 'Локальный тест: показатели для ' + item.code + ' не запрашивались', false);
-      });
+      renderApiResponse('Демо-режим: карточки строятся из локальных заготовок без запросов.');
+      setApiStatus('Демо-ответ сформирован');
+      refreshEquipmentMetrics(true);
     }
 
     updateApiPreview();
@@ -2778,10 +2742,6 @@
       apiEndpointPathInput.value = '/documentation-api';
       equipmentEndpointPathInput.value = '/documentation-api';
       equipmentParamNameInput.value = 'product';
-      apiTokenInput.value = '';
-      tokenAsQueryInput.checked = true;
-      tokenQueryNameInput.value = 'accessCode';
-      tokenQueryNameInput.disabled = false;
       updateApiPreview();
       clearApiResponse();
       renderApiEquipmentList([]);
@@ -2793,12 +2753,8 @@
     apiEndpointPathInput.addEventListener('input', updateApiPreview);
     equipmentEndpointPathInput.addEventListener('input', updateApiPreview);
     equipmentParamNameInput.addEventListener('input', updateApiPreview);
-    apiTokenInput.addEventListener('input', () => updateApiPreview());
-    tokenAsQueryInput.addEventListener('change', syncTokenModeUi);
-    tokenQueryNameInput.addEventListener('input', updateApiPreview);
     checkApiBtn.addEventListener('click', () => {
       performApiRequest();
-      refreshEquipmentMetrics(true);
     });
     showSampleApiBtn.addEventListener('click', () => {
       const items = collectSelectedEquipment();
@@ -2819,7 +2775,6 @@
       });
     });
 
-    syncTokenModeUi();
     showStep(state.step);
   })();
 </script>
