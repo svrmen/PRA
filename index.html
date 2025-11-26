@@ -2342,6 +2342,26 @@
       node.classList.toggle('is-error', !!isError);
     }
 
+    function normalizeHeaders() {
+      const headers = { 'Accept': 'application/json' };
+      const token = (apiTokenInput.value || '').trim();
+      if (token) {
+        headers['Authorization'] = token.toLowerCase().startsWith('bearer ')
+          ? token
+          : 'Bearer ' + token;
+      }
+      return headers;
+    }
+
+    function formatPossiblyHtml(text) {
+      const lower = (text || '').toLowerCase();
+      if (lower.includes('<html') || lower.includes('<!doctype html')) {
+        const snippet = text.split('\n').slice(0, 10).join('\n');
+        return 'Сервер вернул HTML (возможно страница документации/авторизации). Проверьте URL и токен.\n\n' + snippet;
+      }
+      return text || 'Ответ пустой';
+    }
+
     async function fetchEquipmentMetrics(item, headers) {
       const url = buildEquipmentUrl(item.code);
       updateEquipmentBody(item.code, 'GET ' + url + ' ...');
@@ -2364,7 +2384,7 @@
           }
         }
 
-        updateEquipmentBody(item.code, displayText);
+        updateEquipmentBody(item.code, formatPossiblyHtml(displayText));
         return true;
       } catch (err) {
         updateEquipmentBody(item.code, err.message || 'Ошибка получения данных', true);
@@ -2380,13 +2400,7 @@
         return;
       }
 
-      const token = (apiTokenInput.value || '').trim();
-      const headers = {};
-      if (token) {
-        headers['Authorization'] = token.toLowerCase().startsWith('bearer ')
-          ? token
-          : 'Bearer ' + token;
-      }
+      const headers = normalizeHeaders();
 
       setApiStatus('Загружаем показатели для ' + items.length + ' позиций...');
 
@@ -2411,13 +2425,7 @@
       setApiStatus('Запрос выполняется...');
       renderApiResponse('Отправляем GET ' + url + ' ...');
 
-      const headers = {};
-      const token = (apiTokenInput.value || '').trim();
-      if (token) {
-        headers['Authorization'] = token.toLowerCase().startsWith('bearer ')
-          ? token
-          : 'Bearer ' + token;
-      }
+      const headers = normalizeHeaders();
 
       try {
         const response = await fetch(url, { headers });
@@ -2437,7 +2445,7 @@
           }
         }
 
-        renderApiResponse(displayText || 'Ответ пустой');
+        renderApiResponse(formatPossiblyHtml(displayText), false);
         setApiStatus('Успешно · ' + response.status);
       } catch (err) {
         renderApiResponse(err.message || 'Не удалось выполнить запрос', true);
