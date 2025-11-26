@@ -1528,39 +1528,50 @@
             <div class="field-group">
               <label class="field-label">
                 <span>Маршрут для данных по оборудованию</span>
-                <small>маршрут каталога, например /catalog/view/ или /catalog/view/{code}</small>
+                <small>например /new-api/JSON/getdata — добавим референс и accessCode в query</small>
               </label>
-              <input type="text" id="equipmentEndpointPath" value="/catalog/view/" />
+              <input type="text" id="equipmentEndpointPath" value="/new-api/JSON/getdata" />
             </div>
 
             <div class="field-group">
               <label class="field-label">
                 <span>Имя параметра кода оборудования</span>
-                <small>по умолчанию product, при другом API укажите нужный ключ</small>
+                <small>для Systeme это <code>commercialRef</code> (код изделия)</small>
               </label>
-              <input type="text" id="equipmentParamName" value="product" />
+              <input type="text" id="equipmentParamName" value="commercialRef" />
+            </div>
+
+            <div class="field-group">
+              <label class="field-label">
+                <span>API токен (accessCode)</span>
+                <small>добавляется в строку запроса, не нужен Authorization-заголовок</small>
+              </label>
+              <div class="token-mode-row">
+                <input type="text" id="apiTokenInput" value="BnphSREbYznIOxd_YH_3qB5GJcn9v-qb" />
+                <small>Токен передаётся как <code>?accessCode=...</code> в каждом запросе. Предпросмотр скрывает часть значения.</small>
+              </div>
             </div>
 
             <div class="field-group">
               <label class="field-label">
                 <span>Источники данных</span>
-                <small>используются сохранённые карточки из <code>documentation-api</code>, токен не нужен</small>
+                <small>тянем JSON с api.systeme.ru/new-api/JSON/getdata по выбранным кодам</small>
               </label>
               <div class="pill" style="display:inline-flex; gap:6px;">
                 <span class="dot dot--accent"></span>
-                <span>Локальные карточки без сетевых запросов</span>
+                <span>Онлайн запросы в Systeme API + fallback на сохранённые карточки</span>
               </div>
             </div>
 
             <div class="api-hint-row">
-              <div class="api-status-pill" id="apiStatus">Готово к показу карточек</div>
+              <div class="api-status-pill" id="apiStatus">Готово к запросу API</div>
               <div class="api-url-preview" id="apiUrlPreview">
-                <strong>GET</strong> https://api.systeme.ru/documentation-api
+                <strong>GET</strong> https://api.systeme.ru/new-api/JSON/getdata?accessCode=***&commercialRef=GM3P13
               </div>
             </div>
 
             <div class="nav-buttons" style="margin-top:8px;">
-              <button type="button" class="btn-primary" id="checkApiBtn">Показать карточки</button>
+              <button type="button" class="btn-primary" id="checkApiBtn">Запросить API</button>
               <button type="button" class="btn-secondary" id="showSampleApiBtn">Показать тестовый ответ</button>
               <button type="button" class="btn-secondary" id="clearApiBtn">Очистить описание</button>
             </div>
@@ -1571,8 +1582,8 @@
 
             <div class="summary-title" style="margin-top:16px;">Данные по выбранному оборудованию</div>
             <div class="hint">
-              При переходе на этап спецификации показываем карточки выбранных аппаратов: фото из каталога, массу и краткие
-              характеристики. Запросы в интернет не выполняются, поэтому ничего не нужно настраивать.
+              На этапе спецификации запрашиваем API Systeme по каждому артикулу (commercialRef) и добавляем ссылку на
+              карточку каталога. Если API недоступен, покажем офлайн-карточку из сохранённого каталога.
             </div>
 
             <div class="api-equipment-list" id="apiEquipmentList">
@@ -1826,6 +1837,7 @@
     const apiEndpointPathInput = document.getElementById('apiEndpointPath');
     const equipmentEndpointPathInput = document.getElementById('equipmentEndpointPath');
     const equipmentParamNameInput = document.getElementById('equipmentParamName');
+    const apiTokenInput = document.getElementById('apiTokenInput');
     const apiUrlPreview = document.getElementById('apiUrlPreview');
     const apiStatus = document.getElementById('apiStatus');
     const apiResponseBox = document.getElementById('apiResponseBox');
@@ -2360,44 +2372,18 @@
 
     // --- шаг 5: API Systeme ---
 
-    function buildApiUrl() {
-      const base = (apiBaseUrlInput.value || '').trim().replace(/\/+$/, '');
-      let path = (apiEndpointPathInput.value || '').trim();
-      if (!path.startsWith('/')) path = '/' + path;
-      return base + path;
-    }
-
-    function buildEquipmentApiUrl() {
-      const base = (apiBaseUrlInput.value || '').trim().replace(/\/+$/, '');
-      let path = (equipmentEndpointPathInput.value || '/catalog/view/').trim();
-      if (!path.startsWith('/')) path = '/' + path;
-      return base + path;
-    }
-
     function buildEquipmentLink(code) {
-      const base = (apiBaseUrlInput.value || '').trim().replace(/\/+$/, '');
-      if (!base) return '';
-      let path = (equipmentEndpointPathInput.value || '/catalog/view/').trim();
-      if (!path) path = '/catalog/view/';
-      const placeholder = '{code}';
-      const normalizedPath = path.startsWith('/') ? path : '/' + path;
-      if (normalizedPath.includes(placeholder)) {
-        return base + normalizedPath.replace(placeholder, encodeURIComponent(code));
-      }
-      const finalPath = normalizedPath.endsWith('/') ? normalizedPath : normalizedPath + '/';
-      return base + finalPath + encodeURIComponent(code);
+      return buildEquipmentRequestUrl(code);
     }
 
     function updateApiPreview() {
-      const docsUrl = buildApiUrl();
-      const base = (apiBaseUrlInput.value || '').trim().replace(/\/+$/, '');
-      let path = (equipmentEndpointPathInput.value || '/catalog/view/').trim();
-      if (!path) path = '/catalog/view/';
-      if (!path.startsWith('/')) path = '/' + path;
-      const placeholder = path.includes('{code}') ? path : (path.endsWith('/') ? path : path + '/') + '{code}';
+      const docsUrl = buildDocsUrl();
+      const sampleCode = 'GM3P13';
+      const sampleEquipmentUrl = buildEquipmentRequestUrl(sampleCode) || '—';
+      const token = (apiTokenInput.value || '').trim();
       apiUrlPreview.innerHTML = '<div><strong>Документация</strong> ' + docsUrl + '</div>' +
-        '<div class="muted" style="font-size:12px;">Карточки: ' + (base + placeholder) + '</div>' +
-        '<div class="muted" style="font-size:12px;">Работаем офлайн: берём фото и характеристики из сохранённого каталога.</div>';
+        '<div class="muted" style="font-size:12px;">Пример запроса: ' + sampleEquipmentUrl + '</div>' +
+        '<div class="muted" style="font-size:12px;">Токен: ' + maskToken(token) + ' (accessCode)</div>';
     }
 
     function renderApiResponse(text, isError = false) {
@@ -2617,7 +2603,153 @@
       `;
     }
 
-    function refreshEquipmentMetrics(manual = false) {
+    function maskToken(token) {
+      if (!token) return 'не задан';
+      const trimmed = token.trim();
+      if (trimmed.length <= 8) return '*'.repeat(trimmed.length);
+      return trimmed.slice(0, 4) + '…' + trimmed.slice(-4);
+    }
+
+    function buildEquipmentRequestUrl(code) {
+      const base = (apiBaseUrlInput.value || '').trim().replace(/\/+$/, '');
+      if (!base) return '';
+
+      let path = (equipmentEndpointPathInput.value || '/new-api/JSON/getdata').trim();
+      if (!path.startsWith('/')) path = '/' + path;
+
+      const placeholder = '{code}';
+      const token = (apiTokenInput.value || '').trim();
+      const paramName = (equipmentParamNameInput.value || 'commercialRef').trim() || 'commercialRef';
+      const normalizedCode = sanitizeCode(code);
+
+      try {
+        let url;
+        if (path.includes(placeholder) && normalizedCode) {
+          url = new URL(base + path.replace(placeholder, encodeURIComponent(normalizedCode)));
+        } else {
+          url = new URL(base + path);
+          if (normalizedCode) url.searchParams.set(paramName, normalizedCode);
+        }
+        if (token) url.searchParams.set('accessCode', token);
+        return url.toString();
+      } catch (e) {
+        return '';
+      }
+    }
+
+    function buildDocsUrl() {
+      const base = (apiBaseUrlInput.value || '').trim().replace(/\/+$/, '');
+      let path = (apiEndpointPathInput.value || '').trim();
+      if (!path.startsWith('/')) path = '/' + path;
+      return base ? base + path : '';
+    }
+
+    function detectHtmlPayload(text) {
+      return /<html|<!doctype|<head|<meta\s+charset/i.test(text);
+    }
+
+    function extractInterestingFields(entry) {
+      const fields = [];
+      const candidates = ['name', 'title', 'description', 'productName', 'product', 'series', 'type'];
+      const massKeys = ['mass', 'weight', 'Вес'];
+      const imageKeys = ['image', 'photo', 'picture', 'img', 'url'];
+
+      let title = '';
+      for (const key of candidates) {
+        if (entry[key]) { title = entry[key]; break; }
+      }
+
+      let mass = '';
+      for (const key of massKeys) {
+        if (entry[key]) { mass = entry[key]; break; }
+      }
+
+      let image = '';
+      for (const key of imageKeys) {
+        if (entry[key]) { image = entry[key]; break; }
+      }
+
+      Object.entries(entry).forEach(([k, v]) => {
+        if (fields.length >= 6) return;
+        if (typeof v === 'string' || typeof v === 'number') {
+          if (['name','title','description','mass','weight','image','photo','picture','img','url'].includes(k)) return;
+          fields.push(k + ': ' + v);
+        }
+      });
+
+      return { title, mass, image, fields };
+    }
+
+    function findEntryByCode(payload, code) {
+      const target = sanitizeCode(code).toLowerCase();
+      let found = null;
+
+      function walk(node) {
+        if (found || node == null) return;
+        if (Array.isArray(node)) {
+          node.forEach(walk);
+          return;
+        }
+        if (typeof node === 'object') {
+          const values = Object.values(node);
+          for (const v of values) {
+            if (typeof v === 'string' && sanitizeCode(v).toLowerCase() === target) {
+              found = node;
+              return;
+            }
+          }
+          values.forEach(walk);
+        }
+      }
+
+      walk(payload);
+      return found;
+    }
+
+    function renderApiPayload(entry, code, url) {
+      const parsed = extractInterestingFields(entry || {});
+      const fallback = resolveCatalogEntry(code);
+      const image = parsed.image || (fallback ? fallback.photo : '') || makeInlinePlaceholder(code);
+      const mass = parsed.mass || (fallback ? fallback.mass : '—');
+      const title = parsed.title || (fallback ? fallback.title : '') || code;
+      const fieldsHtml = parsed.fields.length ? '<ul>' + parsed.fields.map(f => '<li>' + f + '</li>').join('') + '</ul>' : '';
+      const catalogLink = buildEquipmentLink(code);
+
+      return `
+        <div class="catalog-card">
+          <div class="catalog-card__media">
+            <img src="${image}" alt="${title}" onerror="this.src='${makeInlinePlaceholder(code)}';" />
+          </div>
+          <div class="catalog-card__body">
+            <div class="catalog-card__title">${title} · ${code}</div>
+            <div class="muted">Источник: API Systeme</div>
+            <div class="muted">Масса: ${mass || '—'}</div>
+            ${fieldsHtml}
+            <div class="muted" style="margin-top:6px;">Запрос: <a href="${url}" target="_blank" rel="noreferrer noopener">${url}</a></div>
+            ${catalogLink ? '<div class="muted" style="margin-top:4px;">Ссылка каталога: <a href="' + catalogLink + '" target="_blank" rel="noreferrer noopener">' + catalogLink + '</a></div>' : ''}
+          </div>
+        </div>
+      `;
+    }
+
+    async function fetchJson(url) {
+      const res = await fetch(url, { headers: { 'Accept': 'application/json' } });
+      const text = await res.text();
+      if (!res.ok) {
+        throw new Error('HTTP ' + res.status + ' ' + res.statusText + '\n' + text.slice(0, 400));
+      }
+      if (detectHtmlPayload(text)) {
+        throw new Error('HTML_RESPONSE::' + text.slice(0, 400));
+      }
+      try {
+        const json = JSON.parse(text);
+        return { json, text, status: res.status };
+      } catch (err) {
+        throw new Error('JSON_PARSE::' + text.slice(0, 400));
+      }
+    }
+
+    async function refreshEquipmentMetrics(manual = false, catalogOnly = false) {
       const items = collectSelectedEquipment();
       renderApiEquipmentList(items);
       if (!items.length) {
@@ -2625,43 +2757,113 @@
         return;
       }
 
-      setApiStatus('Показываем карточки из сохранённого каталога');
-
-      let shown = 0;
-      items.forEach(item => {
-        const entry = resolveCatalogEntry(item.code);
-        if (entry) {
-          updateEquipmentBody(item.code, renderCatalogCard(entry, item.code), false);
-          shown += 1;
+      if (catalogOnly) {
+        let shown = 0;
+        items.forEach(item => {
+          const entry = resolveCatalogEntry(item.code);
+          if (entry) {
+            updateEquipmentBody(item.code, renderCatalogCard(entry, item.code), false);
+            shown += 1;
+          } else {
+            updateEquipmentBody(item.code, 'Нет сохранённых данных для ' + item.code + '. Добавьте фото и краткие характеристики вручную.', true);
+          }
+        });
+        if (shown === items.length) {
+          setApiStatus('Офлайн-карточки показаны для всех позиций');
         } else {
-          updateEquipmentBody(item.code, 'Нет сохранённых данных для ' + item.code + '. Добавьте фото и краткие характеристики вручную.', true);
+          setApiStatus('Офлайн-карточки частично заполнены: ' + shown + ' из ' + items.length);
         }
-      });
+        return;
+      }
 
-      if (shown === items.length) {
-        setApiStatus('Карточки сформированы для всех позиций');
-      } else if (shown === 0) {
-        setApiStatus('Для выбранных кодов нет карточек — добавьте описание');
+      const base = (apiBaseUrlInput.value || '').trim();
+      if (!base) {
+        setApiStatus('Укажите базовый URL API');
+        items.forEach(item => updateEquipmentBody(item.code, 'Не указан базовый URL API', true));
+        return;
+      }
+
+      setApiStatus('Запрашиваем Systeme API по ' + items.length + ' позициям…');
+
+      let successCount = 0;
+      let fallbackCount = 0;
+
+      for (const item of items) {
+        const url = buildEquipmentRequestUrl(item.code);
+        if (!url) {
+          updateEquipmentBody(item.code, 'Не удалось собрать URL для ' + item.code, true);
+          fallbackCount += 1;
+          continue;
+        }
+
+        updateEquipmentBody(item.code, 'Запрос к API: ' + url + ' …');
+        try {
+          const data = await fetchJson(url);
+          const entry = findEntryByCode(data.json, item.code) || data.json;
+          updateEquipmentBody(item.code, renderApiPayload(entry, item.code, url), false);
+          successCount += 1;
+        } catch (err) {
+          const message = err.message || '';
+          if (message.startsWith('HTML_RESPONSE::')) {
+            updateEquipmentBody(item.code, 'API вернул HTML (вероятно, документация или страница входа). Уточните маршрут и токен. Фрагмент: ' + message.replace('HTML_RESPONSE::', ''), true);
+          } else if (message.startsWith('JSON_PARSE::')) {
+            updateEquipmentBody(item.code, 'Ответ не похож на JSON, проверьте URL/параметры. Фрагмент: ' + message.replace('JSON_PARSE::', ''), true);
+          } else {
+            updateEquipmentBody(item.code, 'Ошибка запроса: ' + message, true);
+          }
+
+          const entry = resolveCatalogEntry(item.code);
+          if (entry) {
+            updateEquipmentBody(item.code, renderCatalogCard(entry, item.code) + '<div class="muted" style="margin-top:6px;">Показана офлайн-карточка (API недоступен)</div>', true);
+          }
+          fallbackCount += 1;
+        }
+      }
+
+      if (successCount === items.length) {
+        setApiStatus('Данные получены по всем позициям');
+      } else if (successCount === 0) {
+        setApiStatus('Не удалось получить данные по API — показаны офлайн-карточки (' + fallbackCount + ')');
       } else {
-        setApiStatus('Частично заполнено: ' + shown + ' из ' + items.length);
+        setApiStatus('Частично: ' + successCount + ' из ' + items.length + ' позиций с API');
       }
     }
 
-    function performApiRequest() {
-      setApiStatus('Используем сохранённые карточки');
-      renderApiResponse('Сеть не используется: берём фото и характеристики из выгрузки <code>documentation-api</code>.');
-      refreshEquipmentMetrics(true);
+    async function performApiRequest() {
+      const docsUrl = buildDocsUrl();
+      if (!docsUrl) {
+        renderApiResponse('Укажите базовый URL и маршрут документации, затем повторите.');
+        return;
+      }
+
+      renderApiResponse('Запрашиваем документацию: ' + docsUrl + ' …');
+      try {
+        const res = await fetch(docsUrl, { headers: { 'Accept': 'application/json,text/html' } });
+        const text = await res.text();
+        const isHtml = detectHtmlPayload(text);
+        if (!res.ok) {
+          renderApiResponse('Документация недоступна: HTTP ' + res.status + ' ' + res.statusText + '. Фрагмент: ' + text.slice(0, 400), true);
+        } else if (isHtml) {
+          renderApiResponse('Документация открылась (HTML). Маршрут корректный, переходим к загрузке данных оборудования.', false);
+        } else {
+          renderApiResponse('Документация вернула JSON. Фрагмент: <pre>' + text.slice(0, 400) + '</pre>');
+        }
+      } catch (err) {
+        renderApiResponse('Ошибка при запросе документации: ' + (err.message || err), true);
+      }
+
+      await refreshEquipmentMetrics(true);
     }
 
     function clearApiResponse() {
-      renderApiResponse('Здесь появится краткое описание источника данных каталога.');
-      setApiStatus('Готово к просмотру');
+      renderApiResponse('Здесь появится краткое описание ответа API или офлайн-карточек.');
+      setApiStatus('Готово к запросу API');
     }
 
     function showSampleApiResponse(items = collectSelectedEquipment()) {
       renderApiResponse('Демо-режим: карточки строятся из локальных заготовок без запросов.');
       setApiStatus('Демо-ответ сформирован');
-      refreshEquipmentMetrics(true);
+      refreshEquipmentMetrics(true, true);
     }
 
     updateApiPreview();
@@ -2849,8 +3051,9 @@
 
       apiBaseUrlInput.value = 'https://api.systeme.ru';
       apiEndpointPathInput.value = '/documentation-api';
-      equipmentEndpointPathInput.value = '/catalog/view/';
-      equipmentParamNameInput.value = 'product';
+      equipmentEndpointPathInput.value = '/new-api/JSON/getdata';
+      equipmentParamNameInput.value = 'commercialRef';
+      apiTokenInput.value = 'BnphSREbYznIOxd_YH_3qB5GJcn9v-qb';
       updateApiPreview();
       clearApiResponse();
       renderApiEquipmentList([]);
@@ -2858,10 +3061,11 @@
       showStep(state.step = 1);
     });
 
-    apiBaseUrlInput.addEventListener('input', updateApiPreview);
-    apiEndpointPathInput.addEventListener('input', updateApiPreview);
-    equipmentEndpointPathInput.addEventListener('input', updateApiPreview);
-    equipmentParamNameInput.addEventListener('input', updateApiPreview);
+      apiBaseUrlInput.addEventListener('input', updateApiPreview);
+      apiEndpointPathInput.addEventListener('input', updateApiPreview);
+      equipmentEndpointPathInput.addEventListener('input', updateApiPreview);
+      equipmentParamNameInput.addEventListener('input', updateApiPreview);
+      apiTokenInput.addEventListener('input', updateApiPreview);
     checkApiBtn.addEventListener('click', () => {
       performApiRequest();
     });
