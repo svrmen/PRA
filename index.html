@@ -1469,6 +1469,22 @@
 
             <div class="field-group">
               <label class="field-label">
+                <span>Маршрут для данных по оборудованию</span>
+                <small>может отличаться от документации (например, /api/products или /api/metrics)</small>
+              </label>
+              <input type="text" id="equipmentEndpointPath" value="/documentation-api" />
+            </div>
+
+            <div class="field-group">
+              <label class="field-label">
+                <span>Имя параметра кода оборудования</span>
+                <small>по умолчанию product, при другом API укажите нужный ключ</small>
+              </label>
+              <input type="text" id="equipmentParamName" value="product" />
+            </div>
+
+            <div class="field-group">
+              <label class="field-label">
                 <span>API-токен (опционально)</span>
                 <small>если сервер требует авторизацию Bearer</small>
               </label>
@@ -1495,8 +1511,8 @@
             <div class="summary-title" style="margin-top:16px;">Данные по выбранному оборудованию</div>
             <div class="hint">
               При переходе на этап спецификации запрашиваем актуальные показатели по каждой выбранной позиции (автомат,
-              контактор, реле). Используется тот же endpoint с параметром <code>product</code> — можно изменить URL или токен
-              при необходимости.
+              контактор, реле). Для оборудования можно задать отдельный маршрут и имя параметра — если сервер возвращает HTML,
+              скорректируйте поля выше (endpoint/параметр) или добавьте токен.
             </div>
 
             <div class="api-equipment-list" id="apiEquipmentList">
@@ -1726,6 +1742,8 @@
     const resetConfigBtn = document.getElementById('resetConfigBtn');
     const apiBaseUrlInput = document.getElementById('apiBaseUrl');
     const apiEndpointPathInput = document.getElementById('apiEndpointPath');
+    const equipmentEndpointPathInput = document.getElementById('equipmentEndpointPath');
+    const equipmentParamNameInput = document.getElementById('equipmentParamName');
     const apiTokenInput = document.getElementById('apiToken');
     const apiUrlPreview = document.getElementById('apiUrlPreview');
     const apiStatus = document.getElementById('apiStatus');
@@ -2268,8 +2286,20 @@
       return base + path;
     }
 
+    function buildEquipmentApiUrl() {
+      const base = (apiBaseUrlInput.value || '').trim().replace(/\/+$/, '');
+      let path = (equipmentEndpointPathInput.value || '').trim();
+      if (!path.startsWith('/')) path = '/' + path;
+      return base + path;
+    }
+
     function updateApiPreview() {
-      apiUrlPreview.innerHTML = '<strong>GET</strong> ' + buildApiUrl();
+      const docsUrl = buildApiUrl();
+      const equipUrl = buildEquipmentApiUrl();
+      const paramName = (equipmentParamNameInput.value || 'product').trim() || 'product';
+      apiUrlPreview.innerHTML = '<div><strong>GET</strong> ' + docsUrl + '</div>' +
+        '<div class="muted" style="font-size:12px;">Оборудование: ' + equipUrl +
+        '?' + paramName + '={код}</div>';
     }
 
     function renderApiResponse(text, isError = false) {
@@ -2282,14 +2312,15 @@
     }
 
     function buildEquipmentUrl(productCode) {
-      const baseUrl = buildApiUrl();
+      const baseUrl = buildEquipmentApiUrl();
+      const param = (equipmentParamNameInput.value || 'product').trim() || 'product';
       try {
         const url = new URL(baseUrl);
-        url.searchParams.set('product', productCode);
+        url.searchParams.set(param, productCode);
         return url.toString();
       } catch {
         const join = baseUrl.includes('?') ? '&' : '?';
-        return baseUrl + join + 'product=' + encodeURIComponent(productCode);
+        return baseUrl + join + encodeURIComponent(param) + '=' + encodeURIComponent(productCode);
       }
     }
 
@@ -2377,7 +2408,8 @@
       return {
         isHtml: true,
         message: 'Сервер вернул HTML — ' + why + '. ' +
-          'Проверьте маршрут и авторизацию: правильный /api URL, добавлен bearer-токен и CORS для браузера. ' +
+          'Проверьте маршруты: базовый URL и путь для документации, а для оборудования — верный endpoint и имя параметра. ' +
+          'Также убедитесь, что нужен bearer-токен и включён CORS. ' +
           'Показываем начало ответа для диагностики:\n\n' + snippet
       };
     }
@@ -2435,7 +2467,7 @@
       if (successCount === total) {
         setApiStatus('Данные получены для ' + total + ' позиций');
       } else if (successCount === 0) {
-        setApiStatus('Не удалось получить данные по оборудованию');
+        setApiStatus('Не удалось получить данные по оборудованию — проверьте маршрут/параметр');
       } else {
         setApiStatus('Частично получено: ' + successCount + ' из ' + total);
       }
@@ -2683,6 +2715,8 @@
 
       apiBaseUrlInput.value = 'https://api.systeme.ru';
       apiEndpointPathInput.value = '/documentation-api';
+      equipmentEndpointPathInput.value = '/documentation-api';
+      equipmentParamNameInput.value = 'product';
       apiTokenInput.value = '';
       updateApiPreview();
       clearApiResponse();
@@ -2693,6 +2727,8 @@
 
     apiBaseUrlInput.addEventListener('input', updateApiPreview);
     apiEndpointPathInput.addEventListener('input', updateApiPreview);
+    equipmentEndpointPathInput.addEventListener('input', updateApiPreview);
+    equipmentParamNameInput.addEventListener('input', updateApiPreview);
     checkApiBtn.addEventListener('click', () => {
       performApiRequest();
       refreshEquipmentMetrics(true);
