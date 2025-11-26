@@ -1528,9 +1528,9 @@
             <div class="field-group">
               <label class="field-label">
                 <span>Маршрут для данных по оборудованию</span>
-                <small>может отличаться от документации (например, /api/products или /api/metrics)</small>
+                <small>маршрут каталога, например /catalog/view/ или /catalog/view/{code}</small>
               </label>
-              <input type="text" id="equipmentEndpointPath" value="/documentation-api" />
+              <input type="text" id="equipmentEndpointPath" value="/catalog/view/" />
             </div>
 
             <div class="field-group">
@@ -1734,6 +1734,28 @@
   };
 
   // ---------- УТИЛИТЫ ----------
+
+  function sanitizeCode(str) {
+    return (str || '').replace(/\s+/g, '');
+  }
+
+  function getFullContactorCode() {
+    if (!state.contactor) return '';
+    const base = sanitizeCode(state.contactor.code);
+    const coil = sanitizeCode(state.coilCode);
+    return coil ? base + coil : base;
+  }
+
+  function makeInlinePlaceholder(label) {
+    const safeLabel = sanitizeCode(label) || '—';
+    return 'data:image/svg+xml;utf8,' + encodeURIComponent(`
+      <svg xmlns="http://www.w3.org/2000/svg" width="320" height="200" viewBox="0 0 320 200" fill="none" role="img">
+        <rect width="320" height="200" fill="#f1f5f9" />
+        <text x="50%" y="50%" dominant-baseline="middle" text-anchor="middle" fill="#0f172a"
+          font-family="Arial, sans-serif" font-size="20">${safeLabel}</text>
+      </svg>
+    `);
+  }
 
   function formatNumber(num, decimals = 1) {
     if (num == null || isNaN(num)) return '—';
@@ -2153,7 +2175,7 @@
         tr.querySelector('input[type="radio"]').addEventListener('change', () => {
           state.contactor = c;
           if (state.coilCode) {
-            coilHint.innerHTML = 'Полный код контактора: <strong>' + c.code + state.coilCode + '</strong>.';
+            coilHint.innerHTML = 'Полный код контактора: <strong>' + getFullContactorCode() + '</strong>.';
           }
           showStep(state.step);
         });
@@ -2183,10 +2205,10 @@
     });
 
     coilVoltageSelect.addEventListener('change', () => {
-      const val = coilVoltageSelect.value || null;
+      const val = sanitizeCode(coilVoltageSelect.value) || null;
       state.coilCode = val;
       if (state.contactor && val) {
-        coilHint.innerHTML = 'Полный код контактора: <strong>' + state.contactor.code + val + '</strong>.';
+        coilHint.innerHTML = 'Полный код контактора: <strong>' + getFullContactorCode() + '</strong>.';
       } else {
         coilHint.textContent = 'Полный код контактора формируется как MC1E09M7, MC1D25BNE и т.п.';
       }
@@ -2347,25 +2369,34 @@
 
     function buildEquipmentApiUrl() {
       const base = (apiBaseUrlInput.value || '').trim().replace(/\/+$/, '');
-      let path = (equipmentEndpointPathInput.value || '').trim();
+      let path = (equipmentEndpointPathInput.value || '/catalog/view/').trim();
       if (!path.startsWith('/')) path = '/' + path;
       return base + path;
     }
 
     function buildEquipmentLink(code) {
-      const equipUrl = buildEquipmentApiUrl();
-      const paramName = (equipmentParamNameInput.value || 'product').trim() || 'product';
-      if (!equipUrl) return '';
-      const separator = equipUrl.includes('?') ? '&' : '?';
-      return equipUrl + separator + encodeURIComponent(paramName) + '=' + encodeURIComponent(code);
+      const base = (apiBaseUrlInput.value || '').trim().replace(/\/+$/, '');
+      if (!base) return '';
+      let path = (equipmentEndpointPathInput.value || '/catalog/view/').trim();
+      if (!path) path = '/catalog/view/';
+      const placeholder = '{code}';
+      const normalizedPath = path.startsWith('/') ? path : '/' + path;
+      if (normalizedPath.includes(placeholder)) {
+        return base + normalizedPath.replace(placeholder, encodeURIComponent(code));
+      }
+      const finalPath = normalizedPath.endsWith('/') ? normalizedPath : normalizedPath + '/';
+      return base + finalPath + encodeURIComponent(code);
     }
 
     function updateApiPreview() {
       const docsUrl = buildApiUrl();
-      const equipUrl = buildEquipmentApiUrl();
-      const paramName = (equipmentParamNameInput.value || 'product').trim() || 'product';
+      const base = (apiBaseUrlInput.value || '').trim().replace(/\/+$/, '');
+      let path = (equipmentEndpointPathInput.value || '/catalog/view/').trim();
+      if (!path) path = '/catalog/view/';
+      if (!path.startsWith('/')) path = '/' + path;
+      const placeholder = path.includes('{code}') ? path : (path.endsWith('/') ? path : path + '/') + '{code}';
       apiUrlPreview.innerHTML = '<div><strong>Документация</strong> ' + docsUrl + '</div>' +
-        '<div class="muted" style="font-size:12px;">Карточки: ' + equipUrl + '?' + paramName + '={код}</div>' +
+        '<div class="muted" style="font-size:12px;">Карточки: ' + (base + placeholder) + '</div>' +
         '<div class="muted" style="font-size:12px;">Работаем офлайн: берём фото и характеристики из сохранённого каталога.</div>';
     }
 
@@ -2383,8 +2414,8 @@
       if (state.breaker) {
         items.push({ label: 'Автомат двигателя', code: state.breaker.code, meta: state.breaker.series });
       }
-      if (state.contactor && state.coilCode) {
-        items.push({ label: 'Контактор с катушкой', code: state.contactor.code + state.coilCode, meta: state.contactor.series });
+      if (state.contactor) {
+        items.push({ label: 'Контактор с катушкой', code: getFullContactorCode(), meta: state.contactor.series });
       }
       if (state.relay) {
         items.push({ label: 'Тепловое реле', code: state.relay.code, meta: state.relay.series });
@@ -2432,7 +2463,7 @@
     const equipmentCatalog = {
       GM3P13: {
         title: 'Автомат защиты двигателя GM3P13',
-        photo: 'https://dummyimage.com/320x200/f3f4f6/0f172a&text=GM3P13',
+        photo: makeInlinePlaceholder('GM3P13'),
         mass: '0,75 кг',
         specs: [
           'Диапазон Ir 9–13 А',
@@ -2442,7 +2473,7 @@
       },
       GM3P16: {
         title: 'Автомат защиты двигателя GM3P16',
-        photo: 'https://dummyimage.com/320x200/f3f4f6/0f172a&text=GM3P16',
+        photo: makeInlinePlaceholder('GM3P16'),
         mass: '0,78 кг',
         specs: [
           'Диапазон Ir 10–16 А',
@@ -2452,7 +2483,7 @@
       },
       MC1E12: {
         title: 'Контактор MC1E 12',
-        photo: 'https://dummyimage.com/320x200/f3f4f6/0f172a&text=MC1E12',
+        photo: makeInlinePlaceholder('MC1E12'),
         mass: '0,42 кг',
         specs: [
           'Ie AC-3 (400 В): 32 А',
@@ -2462,7 +2493,7 @@
       },
       MC1D12: {
         title: 'Контактор MC1D 12',
-        photo: 'https://dummyimage.com/320x200/f3f4f6/0f172a&text=MC1D12',
+        photo: makeInlinePlaceholder('MC1D12'),
         mass: '0,34 кг',
         specs: [
           'Ie AC-3 (400 В): 25 А',
@@ -2472,7 +2503,7 @@
       },
       MRE14: {
         title: 'Тепловое реле MRE14',
-        photo: 'https://dummyimage.com/320x200/f3f4f6/0f172a&text=MRE14',
+        photo: makeInlinePlaceholder('MRE14'),
         mass: '0,26 кг',
         specs: [
           'Диапазон тока 9–13 А',
@@ -2482,7 +2513,7 @@
       },
       MRD16: {
         title: 'Тепловое реле MRD16',
-        photo: 'https://dummyimage.com/320x200/f3f4f6/0f172a&text=MRD16',
+        photo: makeInlinePlaceholder('MRD16'),
         mass: '0,28 кг',
         specs: [
           'Диапазон тока 11,3–16 А',
@@ -2493,8 +2524,9 @@
     };
 
     function resolveCatalogEntry(code) {
-      if (equipmentCatalog[code]) return equipmentCatalog[code];
-      const foundKey = Object.keys(equipmentCatalog).find(k => code.startsWith(k));
+      const cleanCode = sanitizeCode(code);
+      if (equipmentCatalog[cleanCode]) return equipmentCatalog[cleanCode];
+      const foundKey = Object.keys(equipmentCatalog).find(k => cleanCode.startsWith(k));
       return foundKey ? equipmentCatalog[foundKey] : null;
     }
 
@@ -2613,7 +2645,7 @@
       }
 
       if (state.contactor) {
-        const fullCode = state.coilCode ? state.contactor.code + state.coilCode : state.contactor.code;
+        const fullCode = getFullContactorCode();
         lines.push('Контактор для управления двигателем:');
         lines.push('  • Тип: ' + fullCode + ' (' + state.contactor.series + ')');
         lines.push('  • Номинальный ток Ie AC-3 400 В: ' + formatNumber(state.contactor.Ie, 0) + ' А');
@@ -2664,8 +2696,7 @@
       }
 
       if (state.contactor) {
-        addRow('Контактор', (state.coilCode ? state.contactor.code + state.coilCode : state.contactor.code) +
-          ' (' + state.contactor.series + '), Ie ' + formatNumber(state.contactor.Ie, 0) + ' А');
+        addRow('Контактор', getFullContactorCode() + ' (' + state.contactor.series + '), Ie ' + formatNumber(state.contactor.Ie, 0) + ' А');
       }
 
       if (state.relay) {
@@ -2757,7 +2788,7 @@
 
       apiBaseUrlInput.value = 'https://api.systeme.ru';
       apiEndpointPathInput.value = '/documentation-api';
-      equipmentEndpointPathInput.value = '/documentation-api';
+      equipmentEndpointPathInput.value = '/catalog/view/';
       equipmentParamNameInput.value = 'product';
       updateApiPreview();
       clearApiResponse();
