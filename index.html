@@ -1484,6 +1484,7 @@
 
             <div class="nav-buttons" style="margin-top:8px;">
               <button type="button" class="btn-primary" id="checkApiBtn">Выполнить запрос к API</button>
+              <button type="button" class="btn-secondary" id="showSampleApiBtn">Показать тестовый ответ</button>
               <button type="button" class="btn-secondary" id="clearApiBtn">Очистить ответ</button>
             </div>
 
@@ -1729,6 +1730,7 @@
     const apiUrlPreview = document.getElementById('apiUrlPreview');
     const apiStatus = document.getElementById('apiStatus');
     const apiResponseBox = document.getElementById('apiResponseBox');
+    const showSampleApiBtn = document.getElementById('showSampleApiBtn');
     const apiEquipmentList = document.getElementById('apiEquipmentList');
     const checkApiBtn = document.getElementById('checkApiBtn');
     const clearApiBtn = document.getElementById('clearApiBtn');
@@ -2478,6 +2480,23 @@
       setApiStatus('Готов к запросу');
     }
 
+    function showSampleApiResponse(items = collectSelectedEquipment()) {
+      const sample = {
+        status: 'ok',
+        message: 'Локальный тестовый ответ (без сети)',
+        timestamp: new Date().toISOString(),
+        hint: 'Используйте, чтобы убедиться в работе интерфейса без внешнего API'
+      };
+
+      renderApiResponse(JSON.stringify(sample, null, 2));
+      setApiStatus('Локальный тест выполнен (запрос не отправлялся)');
+
+      renderApiEquipmentList(items);
+      items.forEach(item => {
+        updateEquipmentBody(item.code, 'Локальный тест: показатели для ' + item.code + ' не запрашивались', false);
+      });
+    }
+
     updateApiPreview();
 
     // --- шаг 5: спецификация ---
@@ -2677,6 +2696,10 @@
     checkApiBtn.addEventListener('click', () => {
       performApiRequest();
       refreshEquipmentMetrics(true);
+    });
+    showSampleApiBtn.addEventListener('click', () => {
+      const items = collectSelectedEquipment();
+      showSampleApiResponse(items);
     });
     clearApiBtn.addEventListener('click', clearApiResponse);
 
